@@ -11,3 +11,15 @@ abstract contract ERC5679Ext20 is IERC5679Ext20, ERC165 {
         return interfaceId == type(IERC5679Ext20).interfaceId || super.supportsInterface(interfaceId);
     }
 }
+
+abstract contract ERC5679Ext721 is IERC5679Ext721, ERC165 {
+    function supportsInterface(bytes4 interfaceId) public view virtual override returns (bool) {
+        return interfaceId == type(IERC5679Ext721).interfaceId || super.supportsInterface(interfaceId);
+    }
+}
+
+abstract contract ERC5679Ext1155 is IERC5679Ext1155, ERC165 {
+    function supportsInterface(bytes4 interfaceId) public view virtual override returns (bool) {
+        return interfaceId == type(IERC5679Ext1155).interfaceId || super.supportsInterface(interfaceId);
+    }
+}

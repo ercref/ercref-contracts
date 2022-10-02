@@ -1,5 +1,6 @@
 {
   "name": "eip-5679",
+  "author": "Zainan Victor Zhou <zzn-ercref@zzn.im>",
   "devDependencies": {
     "@nomicfoundation/hardhat-chai-matchers": "^1.0.3",
     "@nomicfoundation/hardhat-toolbox": "^2.0.0",
