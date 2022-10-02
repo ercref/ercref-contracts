@@ -8,7 +8,10 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "./ERC5679.sol";
 
 contract ERC5679Ext20RefImpl is ERC5679Ext20, ERC20 {
-    constructor(string memory name, string memory symbol) ERC20(name, symbol) {}
+    event ErcRefImplDeploy(uint256 version, string name, string url);
+    constructor(uint256 _version) ERC20("ERC5679Ext20RefImpl", "ERC5679Ext20RefImpl") {
+        emit ErcRefImplDeploy(_version, "ERC5679Ext20RefImpl", "http://zzn.li/ercref");
+    }
 
     function mint(
         address _to,

@@ -8,9 +8,13 @@ import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "./ERC5679.sol";
 
 contract ERC5679Ext721RefImpl is ERC5679Ext721, ERC721 {
-    constructor(string memory name_, string memory symbol_)
-        ERC721(name_, symbol_)
-    {}
+
+    event ErcRefImplDeploy(uint256 version, string name, string url);
+    constructor(uint256 _version)
+        ERC721("ERC5679Ext721RefImpl", "ERC5679Ext721RefImpl")
+    {
+        emit ErcRefImplDeploy(_version, "ERC5679Ext721RefImpl", "http://zzn.li/ercref");
+    }
 
     function safeMint(
         address _to,
