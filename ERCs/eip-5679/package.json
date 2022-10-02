@@ -2,8 +2,7 @@
   "name": "eip-5679",
   "author": "Zainan Victor Zhou <zzn-ercref@zzn.im>",
   "scripts": {
-    "test": "mocha",
-    "start": ""
+    "start": "npx hardhat deploy_n_verify --network goerli"
   },
   "devDependencies": {
     "@nomicfoundation/hardhat-chai-matchers": "^1.0.3",

@@ -4,11 +4,7 @@ import '@openzeppelin/hardhat-upgrades';
 import { HardhatUserConfig, task } from 'hardhat/config';
 import * as dotenv from 'dotenv';
 import "@nomiclabs/hardhat-ethers";
-import { Contract, Transaction } from 'ethers';
-
 dotenv.config();
-
-console.log(")
 
 task('deploy_n_verify', 'Deploy the contracts')
   .setAction(async (args, hre) => {
