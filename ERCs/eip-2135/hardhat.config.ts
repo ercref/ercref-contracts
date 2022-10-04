@@ -19,14 +19,14 @@ task('deploy_n_verify', 'Deploy the contracts')
       return { contract, tx };
     }
 
-    const versionHex:string = "0x1002";
+    const versionHex:string = "0x1001";
 
     const network = hre.network.name;
     console.log(`start deploy_n_verify version=${versionHex} on network ${network}`);
     await hre.run('compile');
 
     const results:any[] = [];
-    for (const contractName of ['ERC5679Ext20RefImpl', 'ERC5679Ext721RefImpl', 'ERC5679Ext1155RefImpl']) {
+    for (const contractName of ['ERC2135Ext721Impl']) {
       const { contract, tx } = await deployByName(contractName, [versionHex]);
       results.push({ contract, tx });
     }
