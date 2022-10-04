@@ -26,11 +26,11 @@ interface IEIP2135 {
   function isConsumableBy(address _consumer, uint256 _assetId, uint256 _amount) external view returns (bool _consumable);
 
   /// @notice The event emitted when there is a successful consumption.
-  /// @param _consumer the address of consumer of this token. It doesn't have
+  /// @param consumer the address of consumer of this token. It doesn't have
   ///                  to be the EOA or contract Account that initiates the TX.
-  /// @param _assetId  the NFT asset being consumed
-  /// @param _amount   the amount of the asset being consumed.
-  /// @param _data     extra data passed in for consume for extra message
+  /// @param assetId  the NFT asset being consumed
+  /// @param amount   the amount of the asset being consumed.
+  /// @param data     extra data passed in for consume for extra message
   ///                  or future extension.
-  event OnConsumption(address indexed _consumer, uint256 indexed _assetId, uint256 _amount, bytes _data);
+  event OnConsumption(address indexed consumer, uint256 indexed assetId, uint256 amount, bytes data);
 }

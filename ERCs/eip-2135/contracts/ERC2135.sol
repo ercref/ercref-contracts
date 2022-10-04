@@ -54,6 +54,12 @@ contract ERC2135Ext721Impl is IEIP2135, ERC165, ERC721 {
         return ownerOf(_assetId) == _consumer;
     }
 
+    function safeMint(address to, uint256 tokenId)
+        public // WARNING no access control, DO NOT USE IN PROD
+    {
+        _safeMint(to, tokenId, "");
+    }
+
     // The following functions are overrides required by Solidity.
     function supportsInterface(bytes4 interfaceId)
         public
