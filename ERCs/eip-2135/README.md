@@ -15,5 +15,7 @@ yarn start # to deploy to goerli
 
 ## Deployments
 
-Deployed and verified `version=0x1002` `ERC2135Ext721Impl` at `goerli` testnet of `0x5FbDB2315678afecb367f032d93F642f64180aa3`
-See it on https://goerli.etherscan.io/address/0x5FbDB2315678afecb367f032d93F642f64180aa3
+Deploying ERC2135Ext721Impl with parameters 0x1002
+ERC2135Ext721Impl deployed to: 0x3682bcD67b8A5c0257Ab163a226fBe07BF46379B
+Successfully verified contract ERC2135Ext721Impl on Etherscan.
+https://goerli.etherscan.io/address/0x3682bcD67b8A5c0257Ab163a226fBe07BF46379B#code
