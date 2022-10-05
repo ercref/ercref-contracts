@@ -5,7 +5,7 @@ import { ethers } from "hardhat";
 import { deployByName } from "../utils/deployUtil";
 
 describe("Contract", function () {
-  const version:string = "0x1234";
+  const version: string = "0x1234";
   // We define a fixture to reuse the same setup in every test.
   // We use loadFixture to run this setup once, snapshot that state,
   // and reset Hardhat Network to that snapshot in every test.
@@ -24,7 +24,7 @@ describe("Contract", function () {
     it("Should set the right version", async function () {
       const { tx } = await loadFixture(deployFixture);
       const receipt = await tx.wait();
-      let events = receipt.events.filter((x:any) => {return x.event == "ErcRefImplDeploy"});
+      let events = receipt.events.filter((x: any) => { return x.event == "ErcRefImplDeploy" });
       expect(events.length).to.equal(1);
       expect(events[0].args.version).to.equal(version);
     });
@@ -40,18 +40,24 @@ describe("Contract", function () {
       expect(await contract.isConsumableBy(addr1.address, fakeTokenId, 1)).to.be.true;
       const tx = await contract.consume(addr1.address, fakeTokenId, 1, []);
       const receipt = await tx.wait();
-      const events = receipt.events.filter((x:any) => {return x.event == "OnConsumption"});
+      const events = receipt.events.filter((x: any) => { return x.event == "OnConsumption" });
       expect(events.length).to.equal(1);
       expect(events[0].args.consumer).to.equal(addr1.address);
       expect(events[0].args.assetId).to.equal(fakeTokenId);
       expect(events[0].args.amount).to.equal(1);
       expect(await contract.balanceOf(addr1.address)).to.equal(0);
       await expect(contract.ownerOf(fakeTokenId))
-          .to.be.rejectedWith('ERC721: invalid token ID');
+        .to.be.rejectedWith('ERC721: invalid token ID');
       await expect(contract.isConsumableBy(addr1.address, fakeTokenId, 1))
-          .to.be.rejectedWith('ERC721: invalid token ID');
-
+        .to.be.rejectedWith('ERC721: invalid token ID');
     });
+  });
 
+  describe("EIP-165 Identifier", function () {
+    it("Should match", async function () {
+      const { contract } = await loadFixture(deployFixture);
+      expect(await contract.get165()).to.equal("0xdd691946");
+      expect(await contract.supportsInterface("0xdd691946")).to.be.true;
+    });
   });
 });

@@ -7,7 +7,9 @@ import "@openzeppelin/contracts/utils/introspection/ERC165.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "./IERC2135.sol";
 
-abstract contract AERC2135 is IEIP2135, ERC165 {
+import "hardhat/console.sol";
+
+abstract contract AERC2135 is IERC2135, ERC165 {
     function supportsInterface(bytes4 interfaceId)
         public
         view
@@ -16,12 +18,12 @@ abstract contract AERC2135 is IEIP2135, ERC165 {
         returns (bool)
     {
         return
-            interfaceId == type(IEIP2135).interfaceId ||
+            interfaceId == type(IERC2135).interfaceId ||
             super.supportsInterface(interfaceId);
     }
 }
 
-contract ERC2135Ext721Impl is IEIP2135, ERC165, ERC721 {
+contract ERC2135Ext721Impl is AERC2135, ERC721 {
     event ErcRefImplDeploy(uint256 version, string name, string url);
 
     constructor(uint256 _version)
@@ -39,24 +41,26 @@ contract ERC2135Ext721Impl is IEIP2135, ERC165, ERC721 {
         uint256 _assetId,
         uint256 _amount,
         bytes calldata _data
-    ) external returns (bool _success) {
+    ) external override returns (bool) {
         require(_amount == 1);
         emit OnConsumption(_consumer, _assetId, _amount, _data);
         _burn(_assetId);
+        return true;
     }
 
     function isConsumableBy(
         address _consumer,
         uint256 _assetId,
         uint256 _amount
-    ) external view returns (bool _consumable) {
+    ) external view override returns (bool _consumable) {
         require(_amount == 1);
         return ownerOf(_assetId) == _consumer;
     }
 
-    function safeMint(address to, uint256 tokenId)
-        public // WARNING no access control, DO NOT USE IN PROD
-    {
+    function safeMint(
+        address to,
+        uint256 tokenId // WARNING no access control, DO NOT USE IN PROD
+    ) public virtual {
         _safeMint(to, tokenId, "");
     }
 
@@ -64,9 +68,14 @@ contract ERC2135Ext721Impl is IEIP2135, ERC165, ERC721 {
     function supportsInterface(bytes4 interfaceId)
         public
         view
-        override(ERC721, ERC165)
+        virtual
+        override(AERC2135, ERC721)
         returns (bool)
     {
         return super.supportsInterface(interfaceId);
+    }
+
+    function get165() public pure returns (bytes4) {
+        return type(IERC2135).interfaceId;
     }
 }

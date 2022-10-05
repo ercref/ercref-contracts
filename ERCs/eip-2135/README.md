@@ -1,15 +1,19 @@
 # ERC2135 RefImpl
 
-## Deployments
-
-Deployed and verified `version=0x1001` `ERC2135Ext721Impl` at `goerli` testnet of `0xba9208575ea8b2D21c7a9e0Db83A765aAF33765A`
-See it on https://goerli.etherscan.io/address/0xba9208575ea8b2D21c7a9e0Db83A765aAF33765A
-
+## Getting Started
 
 ```sh
-yarn start
+yarn install
+yarn test
 ```
 
-## Action Items
+When ready to deploy, fill in credentials in [The `.env.tmpl` file](./.env.tmpl) and change name to .env
 
-- [ ] Write tests
+```sh
+yarn start # to deploy to goerli
+```
+
+## Deployments
+
+Deployed and verified `version=0x1002` `ERC2135Ext721Impl` at `goerli` testnet of `0x5FbDB2315678afecb367f032d93F642f64180aa3`
+See it on https://goerli.etherscan.io/address/0x5FbDB2315678afecb367f032d93F642f64180aa3
