@@ -4,22 +4,13 @@ import '@openzeppelin/hardhat-upgrades';
 import { HardhatUserConfig, task } from 'hardhat/config';
 import * as dotenv from 'dotenv';
 import "@nomiclabs/hardhat-ethers";
+import { HardhatRuntimeEnvironment } from 'hardhat/types';
+import { deployByName } from './utils/deployUtil';
 dotenv.config();
 
 task('deploy_n_verify', 'Deploy the contracts')
-  .setAction(async (args, hre) => {
-    async function deployByName(contractName: string, parameters: string[]): Promise<any> /*deployed address*/ {
-      console.log(`Deploying ${contractName} with parameters ${parameters}`);
-      const contractFactory = await hre.ethers.getContractFactory(contractName);
-      const contract = await contractFactory.deploy(...parameters);
-      await contract.deployed();
-      console.log(`${contractName} deployed to: ${contract.address}`);
-      let tx = contract.deployTransaction;
-      console.log(`Contract ${contractName} deployed to ${contract.address}`);
-      return { contract, tx };
-    }
-
-    const versionHex:string = "0x1001";
+  .setAction(async (args, hre:HardhatRuntimeEnvironment) => {
+    const versionHex:string = "0x1002";
 
     const network = hre.network.name;
     console.log(`start deploy_n_verify version=${versionHex} on network ${network}`);
@@ -27,7 +18,7 @@ task('deploy_n_verify', 'Deploy the contracts')
 
     const results:any[] = [];
     for (const contractName of ['ERC2135Ext721Impl']) {
-      const { contract, tx } = await deployByName(contractName, [versionHex]);
+      const { contract, tx } = await deployByName(hre.ethers, contractName, [versionHex]);
       results.push({ contract, tx });
     }
 
