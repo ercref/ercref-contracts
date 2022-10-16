@@ -19,7 +19,7 @@
   "author": "Zainan Victor Zhou <ercref@zzn.im>",
   "license": "Apache-2.0",
   "bugs": {
-    "url": "https://github.com/ercref/contracts/issues"
+    "url": "http://www.ercref.org"
   },
   "homepage": "https://github.com/ercref/contracts#readme",
   "dependencies": {
