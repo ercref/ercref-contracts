@@ -1,4 +1,4 @@
-# ERCRef/contracts
+# ERCRef Contracts
 
 A repository for Ethereum builders to build ERC reference implementations.
 
