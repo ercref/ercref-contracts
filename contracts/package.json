@@ -16,10 +16,13 @@
     "eip",
     "smart-contract"
   ],
-  "author": "Zainan Victor Zhou <zzn+ercref@zzn.im>",
+  "author": "Zainan Victor Zhou <ercref@zzn.im>",
   "license": "Apache-2.0",
   "bugs": {
     "url": "https://github.com/ercref/contracts/issues"
   },
-  "homepage": "https://github.com/ercref/contracts#readme"
+  "homepage": "https://github.com/ercref/contracts#readme",
+  "dependencies": {
+    "user": "^0.0.0"
+  }
 }
