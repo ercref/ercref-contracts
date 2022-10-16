@@ -1,6 +1,6 @@
 {
   "name": "@ercref/contracts",
-  "version": "0.0.2",
+  "version": "0.0.3-0",
   "description": "An open source repository for smart contract reference implementations of ERCs DO NOT USE IN PROD.",
   "main": "index.js",
   "scripts": {
@@ -19,7 +19,7 @@
   "author": "Zainan Victor Zhou <ercref@zzn.im>",
   "license": "Apache-2.0",
   "bugs": {
-    "url": "https://github.com/ercref/contracts/issues"
+    "url": "http://www.ercref.org"
   },
   "homepage": "https://github.com/ercref/contracts#readme",
   "dependencies": {
