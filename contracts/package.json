@@ -1,6 +1,6 @@
 {
   "name": "@ercref/contracts",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "An open source repository for smart contract reference implementations of ERCs DO NOT USE IN PROD.",
   "main": "index.js",
   "scripts": {
@@ -24,5 +24,8 @@
   "homepage": "https://github.com/ercref/contracts#readme",
   "dependencies": {
     "user": "^0.0.0"
+  },
+  "devDependencies": {
+    "bump": "^0.2.5"
   }
 }
