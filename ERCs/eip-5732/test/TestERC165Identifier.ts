@@ -17,8 +17,11 @@ describe("Contract", function () {
   describe("EIP-165 Identifier", function () {
     it("Should match", async function () {
       const { contract } = await loadFixture(deployFixture);
-      expect(await contract.get165()).to.equal("0x4ba43d48");
-      expect(await contract.supportsInterface("0x4ba43d48")).to.be.true;
+      expect(await contract.get165Core()).to.equal("0xf14fcbc8");
+      expect(await contract.supportsInterface("0xf14fcbc8")).to.be.true;
+      expect(await contract.get165General()).to.equal("0x67b2ec2c");
+      expect(await contract.supportsInterface("0x67b2ec2c")).to.be.true;
     });
   });
+
 });

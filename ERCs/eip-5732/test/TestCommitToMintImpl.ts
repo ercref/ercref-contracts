@@ -1,8 +1,8 @@
-import { time, loadFixture } from "@nomicfoundation/hardhat-network-helpers";
-import { anyValue } from "@nomicfoundation/hardhat-chai-matchers/withArgs";
+import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
 import { expect } from "chai";
 import { ethers } from "hardhat";
 import { deployByName } from "../utils/deployUtil";
+import { mine } from "@nomicfoundation/hardhat-network-helpers";
 
 describe("Contract", function () {
   const version: string = "0x1234";
@@ -31,7 +31,7 @@ describe("Contract", function () {
   });
 
   describe("CommitToMint", function () {
-    it("Should allow minting if has valid commitment", async function () {
+    it("Should allow minting if has valid commitment and only with valid block gaps", async function () {
         const fakeTokenId = "0x1234";
         const { contract, addr1 } = await loadFixture(deployFixture);
         const salt = ethers.utils.randomBytes(32);
@@ -40,6 +40,9 @@ describe("Contract", function () {
         expect(solidityCommitment).to.equal(typescriptCommitment);
         const commitment = solidityCommitment;
         await contract.commit(commitment, []);
+        await expect(contract.safeMint(addr1.address, fakeTokenId, salt))
+            .to.be.rejectedWith('Not enough commitment block gap yet.');
+        await mine(6);
         await contract.safeMint(addr1.address, fakeTokenId, salt);
         expect(await contract.ownerOf(fakeTokenId)).to.equal(addr1.address);
     });
