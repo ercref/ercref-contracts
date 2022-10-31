@@ -10,14 +10,14 @@ dotenv.config();
 
 task('deploy_n_verify', 'Deploy the contracts')
   .setAction(async (args, hre:HardhatRuntimeEnvironment) => {
-    const versionHex:string = "0x1002";
+    const versionHex:string = "0x1001";
 
     const network = hre.network.name;
     console.log(`start deploy_n_verify version=${versionHex} on network ${network}`);
     await hre.run('compile');
 
     const results:any[] = [];
-    for (const contractName of ['ERC2135Ext721Impl']) {
+    for (const contractName of ['CommitToMintImpl']) {
       const { contract, tx } = await deployByName(hre.ethers, contractName, [versionHex]);
       results.push({ contract, tx });
     }
