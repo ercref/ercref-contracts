@@ -38,7 +38,7 @@ contract CommitToMintImpl is ERC721, IERC_COMMIT_CORE, IERC_COMMIT_GENERAL  {
             super.supportsInterface(interfaceId);
     }
 
-    function commit(bytes32 _commitment) override payable public  {
+    function commit(bytes32 _commitment) override payable external  {
         _commitFrom(msg.sender, _commitment, "");
     }
 
@@ -46,7 +46,7 @@ contract CommitToMintImpl is ERC721, IERC_COMMIT_CORE, IERC_COMMIT_GENERAL  {
         address _from,
         bytes32 _commitment,
         bytes calldata _extraData
-    ) override payable public returns(uint256)  {
+    ) override payable external returns(uint256)  {
         require(_from == msg.sender, "Sender must be commiter in this one.");
         return _commitFrom(_from, _commitment, _extraData);
     }
@@ -68,7 +68,7 @@ contract CommitToMintImpl is ERC721, IERC_COMMIT_CORE, IERC_COMMIT_GENERAL  {
         address _to,
         uint256 _tokenId,
         bytes calldata _extraData
-    ) public pure returns(bytes32) {
+    ) external pure returns(bytes32) {
         bytes32 salt = bytes32(_extraData[0:32]);
         return keccak256(abi.encodePacked(_to, _tokenId, salt));
     }
@@ -94,11 +94,11 @@ contract CommitToMintImpl is ERC721, IERC_COMMIT_CORE, IERC_COMMIT_GENERAL  {
         _safeMint(_to, _tokenId); // ignoring _extraData in this simple reference implementation.
     }
 
-    function get165Core() public pure returns (bytes4) {
+    function get165Core() external pure returns (bytes4) {
         return type(IERC_COMMIT_CORE).interfaceId;
     }
 
-    function get165General() public pure returns (bytes4) {
+    function get165General() external pure returns (bytes4) {
         return type(IERC_COMMIT_GENERAL).interfaceId;
     }
 }
