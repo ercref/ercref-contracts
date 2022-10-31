@@ -2,9 +2,8 @@
 // Author: Zainan Victor Zhou <zzn-ercref@zzn.im>
 // Visit our open source repo: http://zzn.li/ercref
 
-pragma solidity ^0.8.9;
+pragma solidity ^0.8.17;
 
-import "hardhat/console.sol";
 import "./IERC5732.sol";
 import "@openzeppelin/contracts/utils/introspection/ERC165.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
