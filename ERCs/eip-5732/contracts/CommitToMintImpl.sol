@@ -9,17 +9,15 @@ import "./IERC5732.sol";
 import "@openzeppelin/contracts/utils/introspection/ERC165.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 
-/**
- * @dev Implementation of the {IERC_COMMIT} interface for the Mint use case.
- * Assuming "TokenID" represents something intersting that people want to
- * run to mint for. This reference implementation breakdown the minting
- * process into two steps:
- *  Step1. One user calls the `commit` inorder to commit to a minting request
- *        but the actual `tokenId` is not yet revealed to general public.
- *  Step2. After sometime, that same user calls the "mint" with the actual
- *        `tokenId` to mint the token, which reveals the token.
- *        The mint request also contains the a `secret_sault` in its ExtraData.
- */
+/// @dev Implementation of the {IERC_COMMIT} interface for the Mint use case.
+/// Assuming "TokenID" represents something intersting that people want to
+/// run to mint for. This reference implementation breakdown the minting
+/// process into two steps:
+/// Step1. One user calls the `commit` inorder to commit to a minting request
+///     but the actual `tokenId` is not yet revealed to general public.
+/// Step2. After sometime, that same user calls the "mint" with the actual
+///     `tokenId` to mint the token, which reveals the token.
+///     The mint request also contains the a `secret_sault` in its ExtraData.
 contract CommitToMintImpl is ERC721, IERC_COMMIT_CORE, IERC_COMMIT_GENERAL  {
     uint256 constant MANDATORY_BLOCKNUM_GAP = 6;
     mapping(address => bytes32) public commitments;
