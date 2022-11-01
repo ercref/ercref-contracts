@@ -4,3 +4,8 @@
 
 A repository for Ethereum builders to build ERC reference implementations.
 
+### Use npm package
+
+```sh
+npm i -D @ercre/contracts
+```
