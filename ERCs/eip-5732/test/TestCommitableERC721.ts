@@ -11,7 +11,7 @@ describe("Contract", function () {
   // and reset Hardhat Network to that snapshot in every test.
   async function deployFixture() {
     const [owner, addr1, addr2] = await ethers.getSigners();
-    const { contract, tx } = await deployByName(ethers, "CommitToMintImpl", [version]);
+    const { contract, tx } = await deployByName(ethers, "CommitableERC721", [version]);
 
     return { contract, tx, owner, addr1, addr2 };
   }
@@ -61,7 +61,7 @@ describe("Contract", function () {
       const fakeTokenId = "0x1234";
       const { contract, addr1 } = await loadFixture(deployFixture);
       await expect(contract.safeMint(addr1.address, fakeTokenId, []))
-      .to.be.rejectedWith('extraData');
+      .to.be.rejected;
     });
 
   });

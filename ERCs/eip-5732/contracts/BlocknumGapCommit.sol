@@ -6,7 +6,7 @@ pragma solidity ^0.8.17;
 
 import "./IERC5732.sol";
 import "@openzeppelin/contracts/utils/introspection/ERC165.sol";
-import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import "hardhat/console.sol";
 
 /// @dev Implementation of the {IERC_COMMIT} interface for the Mint use case.
 /// Assuming "TokenID" represents something intersting that people want to
@@ -17,19 +17,16 @@ import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 /// Step2. After sometime, that same user calls the "mint" with the actual
 ///     `tokenId` to mint the token, which reveals the token.
 ///     The mint request also contains the a `secret_sault` in its ExtraData.
-contract CommitToMintImpl is ERC721, IERC_COMMIT_CORE, IERC_COMMIT_GENERAL  {
+abstract contract BlocknumGapCommit is IERC_COMMIT_CORE, IERC_COMMIT_GENERAL, ERC165 {
     uint256 constant MANDATORY_BLOCKNUM_GAP = 6;
-    mapping(address => bytes32) public commitments;
-    mapping(address => uint256) public commitTimes;
-    event ErcRefImplDeploy(uint256 version, string name, string url);
-    constructor(uint256 _version) ERC721("CommitToMintImpl", "CTMI") {
-        emit ErcRefImplDeploy(_version, "CommitToMintImpl", "http://zzn.li/ercref");
-    }
+    mapping(address => bytes32) private commitments;
+    mapping(address => uint256) private commitTimes;
+
     function supportsInterface(bytes4 interfaceId)
         public
+        override
         view
         virtual
-        override(ERC721)
         returns (bool)
     {
         return
@@ -38,7 +35,7 @@ contract CommitToMintImpl is ERC721, IERC_COMMIT_CORE, IERC_COMMIT_GENERAL  {
             super.supportsInterface(interfaceId);
     }
 
-    function commit(bytes32 _commitment) override payable external  {
+    function commit(bytes32 _commitment) override payable external virtual  {
         _commitFrom(msg.sender, _commitment, "");
     }
 
@@ -46,7 +43,7 @@ contract CommitToMintImpl is ERC721, IERC_COMMIT_CORE, IERC_COMMIT_GENERAL  {
         address _from,
         bytes32 _commitment,
         bytes calldata _extraData
-    ) override payable external returns(uint256)  {
+    ) override payable external virtual returns(uint256)  {
         require(_from == msg.sender, "Sender must be commiter in this one.");
         return _commitFrom(_from, _commitment, _extraData);
     }
@@ -55,7 +52,7 @@ contract CommitToMintImpl is ERC721, IERC_COMMIT_CORE, IERC_COMMIT_GENERAL  {
         address _from,
         bytes32 _commitment,
         bytes memory _extraData
-    ) internal returns(uint256)  {
+    ) internal virtual returns(uint256)  {
         // For simplicity, it's ok to update commitment if it's already set.
         commitments[msg.sender] = _commitment;
         uint256 blocknum = block.number;
@@ -67,38 +64,35 @@ contract CommitToMintImpl is ERC721, IERC_COMMIT_CORE, IERC_COMMIT_GENERAL  {
     function calculateCommitment(
         address _to,
         uint256 _tokenId,
-        bytes calldata _extraData
-    ) external pure returns(bytes32) {
-        bytes32 salt = bytes32(_extraData[0:32]);
+        bytes32 salt
+    ) external virtual pure returns(bytes32) {
         return keccak256(abi.encodePacked(_to, _tokenId, salt));
     }
-    function safeMint(
-        address _to,
-        uint256 _tokenId,
-        bytes calldata _extraData
-    ) external {
-        require(_extraData.length == 32, "The extraData shall be 32 bytes");
-        bytes32 salt = bytes32(_extraData[0:32]);
+
+    function _reveal(
+        bytes memory _dataToSeal,
+        bytes32 _salt
+    ) internal virtual returns(bool) {
+        console.logBytes(_dataToSeal);
+        console.logBytes32(_salt);
         require(
-            commitments[msg.sender] == keccak256(abi.encodePacked(_to, _tokenId, salt)),
-            "CommitToMintImpl: Invalid commitment"
+            commitments[msg.sender] == keccak256(abi.encodePacked(_dataToSeal, _salt)),
+            "BlocknumGapCommit: Invalid commitment"
         );
+
         require(
             block.number >= commitTimes[msg.sender] + MANDATORY_BLOCKNUM_GAP,
-            "CommitToMintImpl: Not enough commitment block gap yet."
+            "BlocknumGapCommit: Not enough commitment block gap yet."
         );
         // For simplicity, it's ok to mint to anyone.
         // Please DO NOT USE this in production.
         delete commitments[msg.sender];
         delete commitTimes[msg.sender];
-        _safeMint(_to, _tokenId); // ignoring _extraData in this simple reference implementation.
+        return true;
     }
 
-    function get165Core() external pure returns (bytes4) {
-        return type(IERC_COMMIT_CORE).interfaceId;
-    }
-
-    function get165General() external pure returns (bytes4) {
-        return type(IERC_COMMIT_GENERAL).interfaceId;
+    modifier onlyCommited(bytes memory dataToSeal, bytes32 salt) {
+        require(_reveal(dataToSeal, salt), "BlocknumGapCommit: Not commited or invalid commitment.");
+        _;
     }
 }
