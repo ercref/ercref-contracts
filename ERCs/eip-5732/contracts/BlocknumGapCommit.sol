@@ -6,7 +6,6 @@ pragma solidity ^0.8.17;
 
 import "./IERC5732.sol";
 import "@openzeppelin/contracts/utils/introspection/ERC165.sol";
-import "hardhat/console.sol";
 
 /// @dev Implementation of the {IERC_COMMIT} interface for the Mint use case.
 /// Assuming "TokenID" represents something intersting that people want to
@@ -73,8 +72,6 @@ abstract contract BlocknumGapCommit is IERC_COMMIT_CORE, IERC_COMMIT_GENERAL, ER
         bytes memory _dataToSeal,
         bytes32 _salt
     ) internal virtual returns(bool) {
-        console.logBytes(_dataToSeal);
-        console.logBytes32(_salt);
         require(
             commitments[msg.sender] == keccak256(abi.encodePacked(_dataToSeal, _salt)),
             "BlocknumGapCommit: Invalid commitment"
