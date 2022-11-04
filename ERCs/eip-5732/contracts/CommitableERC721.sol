@@ -19,6 +19,7 @@ import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 ///     `tokenId` to mint the token, which reveals the token.
 ///     The mint request also contains the a `secret_sault` in its ExtraData.
 contract CommitableERC721 is ERC721, BlocknumGapCommit {
+    uint256 constant MANDATORY_BLOCKNUM_GAP = 6;
     event ErcRefImplDeploy(uint256 version, string name, string url);
     constructor(uint256 _version) ERC721("CommitToMintImpl", "CTMI") {
         emit ErcRefImplDeploy(_version, "CommitToMintImpl", "http://zzn.li/ercref");
@@ -38,7 +39,11 @@ contract CommitableERC721 is ERC721, BlocknumGapCommit {
         address _to,
         uint256 _tokenId,
         bytes calldata _extraData
-    )   onlyCommited(abi.encodePacked(_to, _tokenId), bytes32(_extraData[0:32]))
+    )   onlyCommited(
+            abi.encodePacked(_to, _tokenId),
+            bytes32(_extraData[0:32]), // The first 32bytes of safeMint._extraData is being used as salt
+            MANDATORY_BLOCKNUM_GAP
+        )
         external {
         _safeMint(_to, _tokenId); // ignoring _extraData in this simple reference implementation.
     }
