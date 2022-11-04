@@ -17,7 +17,6 @@ import "@openzeppelin/contracts/utils/introspection/ERC165.sol";
 ///     `tokenId` to mint the token, which reveals the token.
 ///     The mint request also contains the a `secret_sault` in its ExtraData.
 abstract contract BlocknumGapCommit is IERC_COMMIT_CORE, IERC_COMMIT_GENERAL, ERC165 {
-    uint256 constant MANDATORY_BLOCKNUM_GAP = 6;
     mapping(address => bytes32) private commitments;
     mapping(address => uint256) private commitTimes;
 
@@ -70,7 +69,8 @@ abstract contract BlocknumGapCommit is IERC_COMMIT_CORE, IERC_COMMIT_GENERAL, ER
 
     function _reveal(
         bytes memory _dataToSeal,
-        bytes32 _salt
+        bytes32 _salt,
+        uint256 gap
     ) internal virtual returns(bool) {
         require(
             commitments[msg.sender] == keccak256(abi.encodePacked(_dataToSeal, _salt)),
@@ -78,7 +78,7 @@ abstract contract BlocknumGapCommit is IERC_COMMIT_CORE, IERC_COMMIT_GENERAL, ER
         );
 
         require(
-            block.number >= commitTimes[msg.sender] + MANDATORY_BLOCKNUM_GAP,
+            block.number >= commitTimes[msg.sender] + gap,
             "BlocknumGapCommit: Not enough commitment block gap yet."
         );
         // For simplicity, it's ok to mint to anyone.
@@ -88,8 +88,15 @@ abstract contract BlocknumGapCommit is IERC_COMMIT_CORE, IERC_COMMIT_GENERAL, ER
         return true;
     }
 
-    modifier onlyCommited(bytes memory dataToSeal, bytes32 salt) {
-        require(_reveal(dataToSeal, salt), "BlocknumGapCommit: Not commited or invalid commitment.");
+    /// @dev A modifier for reveal function
+    /// @param _dataToSeal The data to seal in the commitments
+    /// @param _salt The salt to seal in the commitments
+    /// @param _gap The blocknum gap to wait before minting.
+    modifier onlyCommited(
+        bytes memory _dataToSeal,
+        bytes32 _salt,
+        uint256 _gap) {
+        require(_reveal(_dataToSeal, _salt, _gap), "BlocknumGapCommit: Not commited or invalid commitment.");
         _;
     }
 }
