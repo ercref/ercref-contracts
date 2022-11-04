@@ -8,10 +8,6 @@ A repository for Ethereum builders to build ERC reference implementations.
 
 Here is how you can start using this repo.
 
-## Disclaimer and Warnings
-
-> *WARNING*: This repository is meant to be cutting (bleeding) edge and pioneer. Please make sure to conduct security audit before using in production.
-
 ### Use npm package
 
 ```sh
@@ -79,3 +75,7 @@ contract CommitableERC721 is ERC721, BlocknumGapCommit {
 ```sh
 yarn publish --access public
 ```
+
+## Disclaimer and Warnings
+
+*WARNING*: This repository is meant to be cutting (bleeding) edge and pioneer. Please make sure to conduct security audit before using in production.
