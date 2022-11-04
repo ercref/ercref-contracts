@@ -4,6 +4,8 @@
 
 A repository for Ethereum builders to build ERC reference implementations.
 
+Please conduct security audit before using in production.
+
 ### Use npm package
 
 ```sh

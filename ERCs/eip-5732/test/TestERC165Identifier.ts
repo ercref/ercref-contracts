@@ -10,7 +10,7 @@ describe("Contract", function () {
   async function deployFixture() {
     const version: string = "0x1234";
     const [owner, addr1, addr2] = await ethers.getSigners();
-    const { contract, tx } = await deployByName(ethers, "CommitToMintImpl", [version]);
+    const { contract, tx } = await deployByName(ethers, "CommitableERC721", [version]);
 
     return { contract, tx, owner, addr1, addr2 };
   }

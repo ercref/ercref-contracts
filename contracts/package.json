@@ -1,8 +1,7 @@
 {
   "name": "@ercref/contracts",
-  "version": "0.0.3",
-  "description": "An open source repository for smart contract reference implementations of ERCs DO NOT USE IN PROD.",
-  "main": "index.js",
+  "version": "0.0.4",
+  "description": "An open source repository for smart contract reference implementations of ERCs. Please see the README for more information.",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
