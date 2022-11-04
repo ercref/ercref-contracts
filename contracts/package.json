@@ -1,0 +1,30 @@
+{
+  "name": "@ercref/contracts",
+  "version": "0.0.4",
+  "description": "An open source repository for smart contract reference implementations of ERCs. Please see the README for more information.",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ercref/contracts.git"
+  },
+  "keywords": [
+    "erc",
+    "ethereum",
+    "eip",
+    "smart-contract"
+  ],
+  "author": "Zainan Victor Zhou <ercref@zzn.im>",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "http://www.ercref.org"
+  },
+  "homepage": "https://github.com/ercref/contracts#readme",
+  "dependencies": {
+    "user": "^0.0.0"
+  },
+  "devDependencies": {
+    "bump": "^0.2.5"
+  }
+}
