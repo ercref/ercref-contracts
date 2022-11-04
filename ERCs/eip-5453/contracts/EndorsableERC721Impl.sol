@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 // Author: Zainan Victor Zhou <zzn-ercref@zzn.im>
-// 
+//
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "./AERC5453.sol";
 
@@ -10,25 +10,40 @@ contract EndorsableERC721Impl is ERC721, AERC5453 {
     }
 
     function safeTransferFrom(address _from, address _to, uint256 _tokenId, bytes calldata _data)
-        public
-            onlyEndorsed(  // used as modifier
-                _tokenId,
-                _computeDigest(_from, _to, _tokenId, _data[:_data.length - AERC5453.LENGTH_OF_ENDORSEMENT]),
-                _data[:AERC5453.LENGTH_OF_ENDORSEMENT]
-            ),
-    )
+        external
+        onlyEndorsed(  // used as modifier
+            _tokenId,
+            _computeDigest(_from, _to, _tokenId),
+            _data // use the full data as endorsement informration
+        ),
         override {
-        _safeTransfer(from, to, tokenId, data[_data.length - AERC5453.LENGTH_OF_ENDORSEMENT:]);
+        _safeTransfer(from, to, tokenId, "");
     }
 
-    function _computeDigest(address _from, address _to, uint256 _tokenId, bytes calldata _extraData) internal pure returns (bytes32) {
-        uint256 remainLength = _extraData.length - AERC5453.LENGTH_OF_ENDORSEMENT;
+    function _eip712DomainTypeHash() pure internal returns (bytes32) {
+        return keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)");
+    }
+
+    function _eip712DomainSeparator() pure internal returns (bytes) {
+        return abi.encode(
+            _eip712DomainTypeHash(),
+            keccak256("EndorsableERC721Impl"),
+            keccak256("1"),
+            block.chainid,
+            address(this)
+        );
+    }
+
+    function computeDigest(
+        address _from,
+        address _to,
+        uint256 _tokenId,
+    ) external pure returns (bytes32) {
         return keccak256(
             abi.encodePacked(
-                from, to, id, amount,
-                extraData[:remainLength], // first part of extraData is reserved for original use for extraData unendorsed.
-                extraData[remainLength: remainLength + 32], // nonce of endorsement for the {contract, endorser} combination
-                extraData[remainLength + 32: remainLength + 64], // valid_by for the endorsement
+                _from,
+                _to,
+                _tokenId
             )
         );
     }
