@@ -26,6 +26,7 @@ struct SingleEndorsement {
 
 struct MultiEndorsement {
     SingleEndorsementData[] data;
+    dataLength: bytes4; // TBD: How long
     formatType: bytes2; // MUST be 0x0002
     magicWord: bytes8;
 }
@@ -57,10 +58,15 @@ abstract contract Endorsible is IERC5453 {
                 abi.encodePacked(endorsement.data.r, endorsement.data.s, endorsement.data.v)
             ));
             return endorsement.data.endorserAddress;
-        } else {
-            revert("Unsupported endorsement format");
+        } else if (erc5453FormatType == MULTI_ENDORSER_TYPE) {
+            // bytes4 length = _e[_e.length - 14:_e.length - 10];
+            // SingleEndorsement dataItems = new SingleEndorsement[length]();
+            // ... Go through each of the endorsers and return a list.
         }
 
+        else {
+            revert("Unsupported endorsement format");
+        }
     }
     modifier onlyEndorsed(
         uint256 _eligibilityIdentifier,

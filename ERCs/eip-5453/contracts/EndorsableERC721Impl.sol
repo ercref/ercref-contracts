@@ -49,6 +49,7 @@ contract EndorsableERC721Impl is ERC721, AERC5453 {
     }
 
     function _isEligibleEndorser(uint256 _tokenId, address _endorser) virtual override {
-        return _msgSender() == owner || isApprovedForAll(owner, _msgSender());
+        address owner = ownerOf(_tokenId);
+        return owner == _endorser || isApprovedForAll(owner, _endorser);
     }
 }
