@@ -51,7 +51,9 @@ contract ERC5679Ext1155RefImpl is ERC5679Ext1155, ERC1155 {
     function supportsInterface(bytes4 interfaceId)
         public
         view
-        override(ERC1155, ERC5679Ext1155)
+        override(ERC5679Ext1155, ERC1155)
         returns (bool)
-    {}
+    {
+        return super.supportsInterface(interfaceId);
+    }
 }
