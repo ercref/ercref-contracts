@@ -13,6 +13,9 @@ Here is how you can start using this repo.
 ```sh
 npm i -D @ercref/contracts
 ```
+### Useful Templates
+- @fulldecent's https://github.com/fulldecent/solidity-template
+- @mattstam's https://github.com/mattstam/solidity-template
 
 ### Import dependencies
 
