@@ -1,11 +1,12 @@
 // SPDX-License-Identifier: MIT
-
 pragma solidity ^0.8.9;
+
 import "@ensdomains/ens-contracts/contracts/registry/ENS.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 // Import ownershiop
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "./IERC5298.sol";
 
 struct TokenHolding {
     address contractAddress;
@@ -13,7 +14,7 @@ struct TokenHolding {
 }
 
 // TODO consider how to handle ERC1155 when amount is involved and can be splitted by multiple owners
-contract FirstENSTrust is IERC721Receiver, Ownable {
+contract FirstENSTrust is IERC5298, IERC721Receiver, Ownable {
     // Same address for Mainet, Ropsten, Rinkerby, Gorli and other networks;
     address constant DEFAULT_GLOBAL_ENS = 0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e;
     address private ensAddress = DEFAULT_GLOBAL_ENS;
@@ -78,7 +79,11 @@ contract FirstENSTrust is IERC721Receiver, Ownable {
         delete erc721TokenToNodeMap[tokenHash];
     }
 
-    function claimTo(address to, bytes32 ensNode, address tokenConttract, uint256 tokenId) public {
+    function claimTo(
+        address to,
+        bytes32 ensNode,
+        address tokenConttract,
+        uint256 tokenId) payable external {
         require(getENS().owner(ensNode) == msg.sender, "ENSTokenHolder: node not owned by sender");
         removeFromHolding(ensNode, tokenConttract, tokenId);
         IERC721(tokenConttract).safeTransferFrom(address(this), to, tokenId);
