@@ -13,8 +13,6 @@ struct TokenHolding {
 
 // TODO consider how to handle ERC1155 when amount is involved and can be splitted by multiple owners
 abstract contract AERC5298 is IERC5298_CORE, IERC5298_GENERAL, IERC721Receiver {
-    // Same address for Mainet, Ropsten, Rinkerby, Gorli and other networks;
-    address constant internal DEFAULT_GLOBAL_ENS = 0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e;
     bytes4 constant internal ERC721_RECEIVER_MAGICWORD = bytes4(keccak256("onERC721Received(address,address,uint256,bytes)"));
 
     mapping(bytes32 => TokenHolding[]) public erc721NodeToTokenMap;
