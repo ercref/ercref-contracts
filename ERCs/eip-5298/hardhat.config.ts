@@ -3,9 +3,8 @@ import '@nomiclabs/hardhat-ethers';
 import '@openzeppelin/hardhat-upgrades';
 import {HardhatUserConfig} from 'hardhat/config';
 import * as dotenv from 'dotenv';
-import "@nomiclabs/hardhat-ethers";
+import "hardhat-depver";
 
-import "./tasks/depver";
 import "./tasks/resolve";
 
 dotenv.config();
