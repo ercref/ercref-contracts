@@ -20,9 +20,9 @@ import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 ///     The mint request also contains the a `secret_sault` in its ExtraData.
 contract TimestampGapCommitableERC721 is ERC721, TimestampGapCommit {
     uint256 constant MANDATORY_TIMESTAMP_GAP = 60;
-    constructor(uint256 _version)
-        ERC721("CommitToMintImpl", "CTMI")
-        AERCRef("CommitToMintImpl", _version) {}
+    constructor()
+        ERC721("TimestampGapCommitableERC721", "TGCTMI")
+        AERCRef("TimestampGapCommitableERC721", 2) {}
 
     function supportsInterface(bytes4 interfaceId)
         public
