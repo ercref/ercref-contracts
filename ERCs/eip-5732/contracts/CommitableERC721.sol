@@ -20,9 +20,9 @@ import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 ///     The mint request also contains the a `secret_sault` in its ExtraData.
 contract CommitableERC721 is ERC721, BlocknumGapCommit {
     uint256 constant MANDATORY_BLOCKNUM_GAP = 6;
-    constructor(uint256 _version)
+    constructor()
         ERC721("CommitToMintImpl", "CTMI")
-        AERCRef("CommitToMintImpl", _version) {}
+        AERCRef("CommitToMintImpl", 2) {}
 
     function supportsInterface(bytes4 interfaceId)
         public

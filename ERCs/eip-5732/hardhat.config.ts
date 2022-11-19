@@ -4,6 +4,8 @@ import '@openzeppelin/hardhat-upgrades';
 import { HardhatUserConfig } from 'hardhat/config';
 import * as dotenv from 'dotenv';
 import "@nomiclabs/hardhat-ethers";
+import "hardhat-depver";
+
 dotenv.config();
 
 const config: HardhatUserConfig = {
