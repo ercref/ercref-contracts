@@ -4,6 +4,7 @@ import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { deployByName } from './utils/deployUtils';
 dotenv.config();
 import "@nomicfoundation/hardhat-toolbox";
+import "@nomiclabs/hardhat-web3"
 
 task('deploy_n_verify', 'Deploy the contracts')
   .setAction(async (args, hre: HardhatRuntimeEnvironment) => {
@@ -15,7 +16,7 @@ task('deploy_n_verify', 'Deploy the contracts')
 
     const results: any[] = [];
     for (const contractName of ['ERC191Impl']) {
-      const { contract, tx } = await deployByName(hre.ethers, contractName, [versionHex]);
+      const { contract, tx } = await deployByName(hre.ethers, contractName, [versionHex], true);
       results.push({ contract, tx });
     }
 

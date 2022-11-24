@@ -4,6 +4,10 @@
     "hardhat": "^2.12.2"
   },
   "dependencies": {
-    "dotenv": "^16.0.3"
+    "@nomiclabs/hardhat-web3": "^2.0.0",
+    "@openzeppelin/contracts": "^4.8.0",
+    "@openzeppelin/hardhat-upgrades": "^1.21.0",
+    "dotenv": "^16.0.3",
+    "web3": "^1.8.1"
   }
 }
