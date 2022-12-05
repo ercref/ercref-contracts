@@ -5,13 +5,16 @@ import {Test} from "./utils/Test.sol";
 import {FiftyFifty, IFiftyFifty, IFiftyFiftyEvents, IFiftyFiftyTypes} from "../FiftyFifty.sol";
 
 contract FiftyFiftyTest is Test, IFiftyFiftyEvents, IFiftyFiftyTypes {
+    uint256 constant BET_AMOUNT = 100 ether;
+    uint256 constant EXPIRATION_TIMEOUT = 7 days;
+
     FiftyFifty private ff;
 
     address internal alice;
     address internal bob;
 
     function setUp() public {
-        ff = new FiftyFifty();
+        ff = new FiftyFifty(EXPIRATION_TIMEOUT);
 
         uint256 userNum = 2;
         address payable[] memory users = new address payable[](userNum);
@@ -19,7 +22,7 @@ contract FiftyFiftyTest is Test, IFiftyFiftyEvents, IFiftyFiftyTypes {
         for (uint256 i = 0; i < userNum; i++) {
             address payable user = payable(address(uint160(uint256(nextUser))));
             nextUser = keccak256(abi.encodePacked(nextUser));
-            vm.deal(user, 100 ether);
+            vm.deal(user, BET_AMOUNT);
             users[i] = user;
         }
 
@@ -163,7 +166,7 @@ contract FiftyFiftyTest is Test, IFiftyFiftyEvents, IFiftyFiftyTypes {
 
         assertEq(ff.getGame(1).guesser, bob);
 
-        vm.warp(block.timestamp + 7 days + 1);
+        vm.warp(block.timestamp + EXPIRATION_TIMEOUT + 1);
 
         vm.expectEmit(true, true, true, true);
         emit GameEnded(1, GameEndReason.TIMEOUT, bob);

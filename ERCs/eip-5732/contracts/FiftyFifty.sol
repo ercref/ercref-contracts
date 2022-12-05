@@ -36,9 +36,12 @@ interface IFiftyFiftyTypes {
 /// @author Matt Stam (@mattstam)
 /// @notice FiftyFifty is a cointoss-style game where a committer commits to 1 of 2
 ///         choices, and any guesser can match their bet to see if they can guess
-///         the same choice.
+///         the same choice. Winner takes all.
 /// @dev    Errors `IFiftyFiftyErrors`, Events `IFiftyFiftyEvents`, and Types `IFiftyFiftyTypes`
 ///         are seperated in different interfaces unit testing purposes.
+///
+///         This is NOT ready for production use. It is a proof of concept. There is a known
+///         attack vector the committer can frontrun the guesser if they are about to lose.
 interface IFiftyFifty is IFiftyFiftyEvents, IFiftyFiftyTypes, IERC_COMMIT_CORE {
     /// @notice Creates a new game, and sets committer with their commit and the bet.
     /// @param commitment The commitment as a hash of the choice and salt.
@@ -61,7 +64,7 @@ interface IFiftyFifty is IFiftyFiftyEvents, IFiftyFiftyTypes, IERC_COMMIT_CORE {
     ///     guesser guessed the choice, the winner will get transfered the bet amounts.
     /// @param gameId The id of the game to reveal.
     /// @param choice The choice the committer chose.
-    /// @param salt The salt that was used to hash the choice and create the commitment.
+    /// @param salt The secret salt that was used to hash the choice and create the commitment.
     /// @dev The committer will only ever be incentivized to call this function if they win,
     ///     because otherwise they can will let guesser call timeout and pay gas for it.
     function reveal(
@@ -85,8 +88,13 @@ interface IFiftyFifty is IFiftyFiftyEvents, IFiftyFiftyTypes, IERC_COMMIT_CORE {
 }
 
 contract FiftyFifty is IFiftyFifty {
-    uint256 private gameCount = 0;
+    uint256 private gameCount;
+    uint256 private expirationTimeout;
     mapping(uint256 => Game) private games;
+
+    constructor(uint256 _expirationTimeout) {
+        expirationTimeout = _expirationTimeout;
+    }
 
     /// @inheritdoc IFiftyFifty
     function commit(bytes32 _commitment) external payable {
