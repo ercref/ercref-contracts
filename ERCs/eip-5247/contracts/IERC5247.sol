@@ -2,8 +2,20 @@
 pragma solidity ^0.8.17;
 
 interface IERC5247 {
-    event ProposalCreated(uint256 indexed proposalId, address indexed by);
-    event ProposalExecuted(uint256 indexed proposalId, address indexed by);
+    event ProposalCreated(
+        address indexed proposer,
+        uint256 indexed proposalId,
+        address[] targets,
+        uint256[] values,
+        uint256[] gasLimits,
+        bytes[] calldatas);
+
+    event ProposalExecuted(
+        address indexed executor,
+        uint256 indexed proposalId,
+        bytes extraParams
+    );
+
     function createProposal(
         address by,
         uint256 proposalId,
@@ -12,5 +24,6 @@ interface IERC5247 {
         uint256[] calldata gasLimits,
         bytes[] calldata calldatas
     ) external returns (uint256 registeredProposalId);
+
     function executeProposal(uint256 proposalId, bytes calldata extraParams) external;
 }

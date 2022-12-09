@@ -44,6 +44,7 @@ contract GeneralForwarder is IERC5247
         require(targets.length == gasLimits.length, "GeneralForwarder: targets and gasLimits length mismatch");
         require(targets.length == calldatas.length, "GeneralForwarder: targets and calldatas length mismatch");
         registeredProposalId = proposalCount;
+        proposalCount++;
 
         proposals[registeredProposalId] = Proposal({
             by: by,
@@ -53,11 +54,10 @@ contract GeneralForwarder is IERC5247
             calldatas: calldatas,
             gasLimits: gasLimits
         });
-        proposalCount++;
+        emit ProposalCreated(by, proposalId, targets, values, gasLimits, calldatas);
         return registeredProposalId;
     }
-
-    function executeProposal(uint256 proposalId, bytes calldata ) external {
+    function executeProposal(uint256 proposalId, bytes calldata extraParams) external {
         Proposal storage proposal = proposals[proposalId];
         address[] memory targets = proposal.targets;
         string memory errorMessage = "Governor: call reverted without message";
@@ -65,6 +65,7 @@ contract GeneralForwarder is IERC5247
             (bool success, bytes memory returndata) = proposal.targets[i].call{value: proposal.values[i]}(proposal.calldatas[i]);
             Address.verifyCallResult(success, returndata, errorMessage);
         }
+        emit ProposalExecuted(msg.sender, proposalId, extraParams);
     }
 
     function getProposal(uint256 proposalId) external view returns (Proposal memory) {
