@@ -13,11 +13,11 @@ struct Proposal {
     bytes[] calldatas;
 }
 
-contract GeneralForwarder
+contract GeneralForwarder is IERC5247
 {
     using Address for address;
     mapping(uint256 => Proposal) public proposals;
-    uint256 public proposalCount;
+    uint256 private proposalCount;
 
     function createProposal(
         address by,
@@ -44,7 +44,7 @@ contract GeneralForwarder
         return registeredProposalId;
     }
 
-    function execute(uint256 proposalId, bytes calldata extraParams) external {
+    function executeProposal(uint256 proposalId, bytes calldata ) external {
         Proposal storage proposal = proposals[proposalId];
         string memory errorMessage = "Governor: call reverted without message";
         for (uint256 i = 0; i < proposal.targets.length; ++i) {
