@@ -104,7 +104,7 @@ describe("GeneralForwarder", function () {
             const tx = await erc721.connect(owner).batchMint(addresses, tokenIds);
             const txWaited = await tx.wait();
             console.log(`batchMint TX gas`, txWaited.cumulativeGasUsed.toString());
-            console.log(`Gas per mint`, parseInt(txWaited.cumulativeGasUsed.toString()) / numOfMint);
+            console.log(`At ${numOfMint} Gas per mint`, parseInt(txWaited.cumulativeGasUsed.toString()) / numOfMint);
         })
 
         it(`Should work for erc721 batchMint with different addresses`, async function () {
@@ -120,13 +120,13 @@ describe("GeneralForwarder", function () {
             const tx = await erc721.connect(owner).batchMint(addresses, tokenIds);
             const txWaited = await tx.wait();
             console.log(`batchMint TX gas`, txWaited.cumulativeGasUsed.toString());
-            console.log(`Gas per mint`, parseInt(txWaited.cumulativeGasUsed.toString()) / numOfMint);
+            console.log(`At ${numOfMint} Gas per mint`, parseInt(txWaited.cumulativeGasUsed.toString()) / numOfMint);
         });
 
 
         it(`Should work for erc721 batchSafeMint with same addresses`, async function () {
             const { erc721, owner } = await loadFixture(deployFixture);
-            const numOfMint = 200;
+            const numOfMint = 400;
             const tokenIds = [];
             const addresses = [];
 
@@ -136,13 +136,13 @@ describe("GeneralForwarder", function () {
             }
             const tx = await erc721.connect(owner).batchSafeMint(addresses, tokenIds);
             const txWaited = await tx.wait();
-            console.log(`batchMint TX gas`, txWaited.cumulativeGasUsed.toString());
-            console.log(`Gas per mint`, parseInt(txWaited.cumulativeGasUsed.toString()) / numOfMint);
+            console.log(`batchSafeMint TX gas`, txWaited.cumulativeGasUsed.toString());
+            console.log(`At ${numOfMint} Gas per mint`, parseInt(txWaited.cumulativeGasUsed.toString()) / numOfMint);
         });
 
         it(`Should work for erc721 batchSafeMint with different addresses`, async function () {
             const { erc721, owner } = await loadFixture(deployFixture);
-            const numOfMint = 200;
+            const numOfMint = 400;
             const tokenIds = [];
             const addresses = [];
 
@@ -152,8 +152,8 @@ describe("GeneralForwarder", function () {
             }
             const tx = await erc721.connect(owner).batchSafeMint(addresses, tokenIds);
             const txWaited = await tx.wait();
-            console.log(`batchMint TX gas`, txWaited.cumulativeGasUsed.toString());
-            console.log(`Gas per mint`, parseInt(txWaited.cumulativeGasUsed.toString()) / numOfMint);
+            console.log(`batchSafeMint TX gas`, txWaited.cumulativeGasUsed.toString());
+            console.log(`At ${numOfMint} the Gas per mint`, parseInt(txWaited.cumulativeGasUsed.toString()) / numOfMint);
         });
     });
 });
