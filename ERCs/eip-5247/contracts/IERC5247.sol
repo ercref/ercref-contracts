@@ -8,7 +8,9 @@ interface IERC5247 {
         address[] targets,
         uint256[] values,
         uint256[] gasLimits,
-        bytes[] calldatas);
+        bytes[] calldatas,
+        bytes extraParams
+    );
 
     event ProposalExecuted(
         address indexed executor,
@@ -17,12 +19,12 @@ interface IERC5247 {
     );
 
     function createProposal(
-        address by,
         uint256 proposalId,
         address[] calldata targets,
         uint256[] calldata values,
         uint256[] calldata gasLimits,
-        bytes[] calldata calldatas
+        bytes[] calldata calldatas,
+        bytes calldata extraParams
     ) external returns (uint256 registeredProposalId);
 
     function executeProposal(uint256 proposalId, bytes calldata extraParams) external;

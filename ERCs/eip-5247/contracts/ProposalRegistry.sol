@@ -13,32 +13,17 @@ struct Proposal {
     bytes[] calldatas;
 }
 
-contract GeneralForwarder is IERC5247
-{
+contract ProposalRegistry is IERC5247 {
     using Address for address;
     mapping(uint256 => Proposal) public proposals;
     uint256 private proposalCount;
-
-    function forward(
-        address[] calldata targets,
-        uint256[] calldata values,
-        uint256[] calldata /*gasLimits*/,
-        bytes[] calldata calldatas
-    ) public {
-        string memory errorMessage = "Governor: call reverted without message";
-        for (uint256 i = 0; i < targets.length; ++i) {
-            (bool success, bytes memory returndata) = targets[i].call{value: values[i]}(calldatas[i]);
-            Address.verifyCallResult(success, returndata, errorMessage);
-        }
-    }
-
     function createProposal(
-        address by,
         uint256 proposalId,
         address[] calldata targets,
         uint256[] calldata values,
         uint256[] calldata gasLimits,
-        bytes[] calldata calldatas
+        bytes[] calldata calldatas,
+        bytes calldata extraParams
     ) external returns (uint256 registeredProposalId) {
         require(targets.length == values.length, "GeneralForwarder: targets and values length mismatch");
         require(targets.length == gasLimits.length, "GeneralForwarder: targets and gasLimits length mismatch");
@@ -47,14 +32,14 @@ contract GeneralForwarder is IERC5247
         proposalCount++;
 
         proposals[registeredProposalId] = Proposal({
-            by: by,
+            by: msg.sender,
             proposalId: proposalId,
             targets: targets,
             values: values,
             calldatas: calldatas,
             gasLimits: gasLimits
         });
-        emit ProposalCreated(by, proposalId, targets, values, gasLimits, calldatas);
+        emit ProposalCreated(msg.sender, proposalId, targets, values, gasLimits, calldatas, extraParams);
         return registeredProposalId;
     }
     function executeProposal(uint256 proposalId, bytes calldata extraParams) external {
