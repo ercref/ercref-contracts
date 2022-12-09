@@ -19,6 +19,19 @@ contract GeneralForwarder is IERC5247
     mapping(uint256 => Proposal) public proposals;
     uint256 private proposalCount;
 
+    function forward(
+        address[] calldata targets,
+        uint256[] calldata values,
+        uint256[] calldata /*gasLimits*/,
+        bytes[] calldata calldatas
+    ) public {
+        string memory errorMessage = "Governor: call reverted without message";
+        for (uint256 i = 0; i < targets.length; ++i) {
+            (bool success, bytes memory returndata) = targets[i].call{value: values[i]}(calldatas[i]);
+            Address.verifyCallResult(success, returndata, errorMessage);
+        }
+    }
+
     function createProposal(
         address by,
         uint256 proposalId,
@@ -46,10 +59,20 @@ contract GeneralForwarder is IERC5247
 
     function executeProposal(uint256 proposalId, bytes calldata ) external {
         Proposal storage proposal = proposals[proposalId];
+        address[] memory targets = proposal.targets;
         string memory errorMessage = "Governor: call reverted without message";
-        for (uint256 i = 0; i < proposal.targets.length; ++i) {
+        for (uint256 i = 0; i < targets.length; ++i) {
             (bool success, bytes memory returndata) = proposal.targets[i].call{value: proposal.values[i]}(proposal.calldatas[i]);
             Address.verifyCallResult(success, returndata, errorMessage);
         }
     }
+
+    function getProposal(uint256 proposalId) external view returns (Proposal memory) {
+        return proposals[proposalId];
+    }
+
+    function getProposalCount() external view returns (uint256) {
+        return proposalCount;
+    }
+
 }

@@ -14,4 +14,18 @@ contract ERC721ForTesting is ERC721 {
     function safeMint(address to, uint256 tokenId, bytes calldata data) public {
         _safeMint(to, tokenId, data);
     }
+
+    function batchMint(address[] calldata tos, uint256[] calldata tokenIds) external {
+        require(tos.length == tokenIds.length, "ERC721ForTesting: tos and tokenIds length mismatch");
+        for (uint256 i = 0; i < tos.length; ++i) {
+            _mint(tos[i], tokenIds[i]);
+        }
+    }
+
+    function batchSafeMint(address[] calldata tos, uint256[] calldata tokenIds) external {
+        require(tos.length == tokenIds.length, "ERC721ForTesting: tos and tokenIds length mismatch");
+        for (uint256 i = 0; i < tos.length; ++i) {
+            _safeMint(tos[i], tokenIds[i]);
+        }
+    }
 }
