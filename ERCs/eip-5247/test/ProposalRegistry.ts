@@ -68,7 +68,7 @@ describe("ProposalRegistry", function () {
         }
     });
     describe("Benchmark", function () {
-        it(`Should work for a forwarding case`, async function () {
+        it(`Should work for a forwarding case for 200 mints same address`, async function () {
             const { forwarder, erc721, owner } = await loadFixture(deployFixture);
             const numOfMint = 200;
             const calldatas = [];
@@ -87,11 +87,32 @@ describe("ProposalRegistry", function () {
 
             console.log(`txForwardWaited TX gas`, txForwardWaited.cumulativeGasUsed.toString());
 
-            console.log(`Gas per mint`, parseInt(txForwardWaited.cumulativeGasUsed.toString()) / numOfMint);
+            console.log(`Gas per mint for same addresses via forwarder`, parseInt(txForwardWaited.cumulativeGasUsed.toString()) / numOfMint);
             expect(await erc721.balanceOf(owner.address)).to.equal(numOfMint);
-
         });
 
+        it(`Should work for a forwarding case for 200 mints different address`, async function () {
+            const { forwarder, erc721, owner } = await loadFixture(deployFixture);
+            const numOfMint = 200;
+            const calldatas = [];
+            for (let i = 0 ; i < numOfMint; i++) {
+                const callData = erc721.interface.encodeFunctionData(
+                    "mint", [hexlify(ethers.utils.randomBytes(20)), i]);
+                calldatas.push(callData);
+            }
+            expect(await erc721.balanceOf(owner.address)).to.equal(0);
+            let txForward = await forwarder.connect(owner)
+                .forward(
+                    Array(numOfMint).fill(erc721.address),
+                    Array(numOfMint).fill(0),
+                    Array(numOfMint).fill(0),
+                    calldatas);
+            let txForwardWaited = await txForward.wait();
+
+            console.log(`txForwardWaited TX gas`, txForwardWaited.cumulativeGasUsed.toString());
+
+            console.log(`Gas per mint for different addresses via forwarder`, parseInt(txForwardWaited.cumulativeGasUsed.toString()) / numOfMint);
+        });
 
         it(`Should work for erc721 batchMint with same addresses`, async function () {
             const { erc721, owner } = await loadFixture(deployFixture);
