@@ -3,13 +3,13 @@ import { expect } from "chai";
 import { hexlify } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 
-describe("ProposalRegistry", function () {
+describe("ProposalExecutor", function () {
     async function deployFixture() {
         // Contracts are deployed using the first signer/account by default
         const [owner, otherAccount] = await ethers.getSigners();
 
-        const ProposalRegistry = await ethers.getContractFactory("ProposalRegistry");
-        const contract = await ProposalRegistry.deploy();
+        const ProposalExecutor = await ethers.getContractFactory("ProposalExecutor");
+        const contract = await ProposalExecutor.deploy();
 
         const ERC721ForTesting = await ethers.getContractFactory("ERC721ForTesting");
         const erc721 = await ERC721ForTesting.deploy();
@@ -38,7 +38,6 @@ describe("ProposalRegistry", function () {
         });
         const Ns = [0, 50, 100, 150, 200];
         for (let n of Ns) {
-
             it(`Should work for a proposal case of ${n}`, async function () {
                 const { contract, erc721, owner } = await loadFixture(deployFixture);
                 const numOfMint = n;

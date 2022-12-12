@@ -13,7 +13,7 @@ struct Proposal {
     bytes[] calldatas;
 }
 
-contract ProposalRegistry is IERC5247 {
+contract ProposalExecutor is IERC5247 {
     using Address for address;
     mapping(uint256 => Proposal) public proposals;
     uint256 private proposalCount;
