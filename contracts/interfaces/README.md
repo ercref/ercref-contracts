@@ -46,5 +46,5 @@ All ERC interfaces will be moved to this folder.
 |5484|Consensual Soulbound Tokens| Added |
 |5528|Refundable Fungible Token| Added |
 |5679|Token Minting and Burning| Added |
-|5732|Commit Interface|
+|5732|Commit Interface| Added |
 |5750|General Extensibility for Method Behaviors| N/A |
