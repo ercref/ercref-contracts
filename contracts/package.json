@@ -20,11 +20,15 @@
   "bugs": {
     "url": "https://www.ercref.org"
   },
+  "scripts": {
+    "release": "release-it"
+  },
   "homepage": "https://github.com/ercref/ercref-contracts#readme",
   "dependencies": {
     "user": "^0.0.0"
   },
   "devDependencies": {
-    "bump": "^0.2.5"
+    "bump": "^0.2.5",
+    "release-it": "^15.5.1"
   }
 }
