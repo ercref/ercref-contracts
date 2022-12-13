@@ -11,19 +11,19 @@ All ERC interfaces will be moved to this folder.
 |165|Standard Interface Detection| Added |
 |173|Contract Ownership Standard| Added |
 |181|ENS support for reverse resolution of Ethereum addresses| Added |
-|190|Ethereum Smart Contract Packaging Standard| Pending prioritization|
-|191|Signed Data Standard|
-|600|Ethereum purpose allocation for Deterministic Wallets|
-|601|Ethereum hierarchy for deterministic wallets|
-|681|URL Format for Transaction Requests|
-|721|Non-Fungible Token Standard|
-|777|Token Standard|
-|820|Pseudo-introspection Registry Contract|
-|1155|Multi Token Standard|
-|1167|Minimal Proxy Contract|
-|1271|Standard Signature Validation Method for Contracts|
-|1363|Payable Token|
-|1820|Pseudo-introspection Registry Contract|
+|190|Ethereum Smart Contract Packaging Standard| Pending prioritization |
+|191|Signed Data Standard| N/A |
+|600|Ethereum purpose allocation for Deterministic Wallets| N/A |
+|601|Ethereum hierarchy for deterministic wallets| N/A |
+|681|URL Format for Transaction Requests| N/A |
+|721|Non-Fungible Token Standard| Added |
+|777|Token Standard| Added |
+|820|Pseudo-introspection Registry Contract| Superseded |
+|1155|Multi Token Standard| Added |
+|1167|Minimal Proxy Contract| N/A |
+|1271|Standard Signature Validation Method for Contracts| Added |
+|1363|Payable Token| Added |
+|1820|Pseudo-introspection Registry Contract| Pending prioritization |
 |1967|Proxy Storage Slots|
 |2098|Compact Signature Representation|
 |2309|ERC-721 Consecutive Transfer Extension|
