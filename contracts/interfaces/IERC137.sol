@@ -1,6 +1,6 @@
 pragma solidity ^0.8.9;
 
-interface IERC137Registry {
+interface IERC137ENSRegistry {
     event NewOwner(bytes32 indexed, bytes32 indexed, address);
     event NewResolver(bytes32 indexed, address);
     event Transfer(bytes32 indexed, address);
@@ -14,12 +14,12 @@ interface IERC137Registry {
     function setTTL(bytes32 node, uint64 ttl) external;
 }
 
-interface IERC137ResolverCore {
+interface IERC137ENSResolverCore {
     function supportsInterface(bytes4 interfaceID) external view returns (bool);
 }
 
 // Supports InterfaceId=0x3b3b57de and 0x01ffc9a7
-interface IERC137ResolverContract {
+interface IERC137ENSResolverContract {
     event AddrChanged(bytes32 indexed node, address addr);
     function addr(bytes32 node) external view returns (address);
 }

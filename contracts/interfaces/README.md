@@ -10,8 +10,8 @@ All ERC interfaces will be moved to this folder.
 |162|Initial ENS Hash Registrar| Pending prioritization |
 |165|Standard Interface Detection| Added |
 |173|Contract Ownership Standard| Added |
-|181|ENS support for reverse resolution of Ethereum addresses|
-|190|Ethereum Smart Contract Packaging Standard|
+|181|ENS support for reverse resolution of Ethereum addresses| Added |
+|190|Ethereum Smart Contract Packaging Standard| Pending prioritization|
 |191|Signed Data Standard|
 |600|Ethereum purpose allocation for Deterministic Wallets|
 |601|Ethereum hierarchy for deterministic wallets|
