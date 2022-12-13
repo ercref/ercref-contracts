@@ -1,9 +1,9 @@
 {
   "name": "@ercref/contracts",
-  "version": "0.0.10",
+  "version": "0.1.0-1",
   "description": "An open source repository for smart contract reference implementations of ERCs.",
   "scripts": {
-    "publish": "yarn publish --access public"
+    "release": "release-it"
   },
   "repository": {
     "type": "git",
@@ -19,9 +19,6 @@
   "license": "Apache-2.0",
   "bugs": {
     "url": "https://www.ercref.org"
-  },
-  "scripts": {
-    "release": "release-it"
   },
   "homepage": "https://github.com/ercref/ercref-contracts#readme",
   "dependencies": {
