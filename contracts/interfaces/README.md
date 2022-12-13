@@ -34,17 +34,17 @@ All ERC interfaces will be moved to this folder.
 |3156|Flash Loans| Added |
 |3448|MetaProxy Standard| N/A |
 |3475|Abstract Storage Bonds| [Blocked](https://github.com/ethereum/EIPs/issues/6128) |
-|3525|Semi-Fungible Token|
-|3668|CCIP Read: Secure offchain data retrieval|
-|4400|EIP-721 Consumable Extension|
-|4626|Tokenized Vaults|
-|4906|EIP-721 Metadata Update Extension|
-|4907|Rental NFT, an Extension of EIP-721|
-|5192|Minimal Soulbound NFTs|
-|5313|Light Contract Ownership|
-|5375|NFT Author Information and Consent|
-|5484|Consensual Soulbound Tokens|
-|5528|Refundable Fungible Token|
-|5679|Token Minting and Burning|
+|3525|Semi-Fungible Token| Added |
+|3668|CCIP Read: Secure offchain data retrieval| N/A |
+|4400|EIP-721 Consumable Extension| Added |
+|4626|Tokenized Vaults| Added |
+|4906|EIP-721 Metadata Update Extension| Added |
+|4907|Rental NFT, an Extension of EIP-721| Added |
+|5192|Minimal Soulbound NFTs| Added |
+|5313|Light Contract Ownership| Added |
+|5375|NFT Author Information and Consent| N/A |
+|5484|Consensual Soulbound Tokens| Added |
+|5528|Refundable Fungible Token| Added |
+|5679|Token Minting and Burning| Added |
 |5732|Commit Interface|
-|5750|General Extensibility for Method Behaviors|
+|5750|General Extensibility for Method Behaviors| N/A |
