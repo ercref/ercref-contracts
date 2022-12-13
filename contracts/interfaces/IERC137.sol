@@ -18,6 +18,7 @@ interface IERC137ResolverCore {
     function supportsInterface(bytes4 interfaceID) external view returns (bool);
 }
 
+// Supports InterfaceId=0x3b3b57de and 0x01ffc9a7
 interface IERC137ResolverContract {
     event AddrChanged(bytes32 indexed node, address addr);
     function addr(bytes32 node) external view returns (address);
