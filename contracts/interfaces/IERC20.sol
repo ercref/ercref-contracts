@@ -2,7 +2,7 @@
 pragma solidity ^0.8.9;
 
 // Minimal interface to ERC20 token.
-interface IERC20Core {
+interface IERC20TokenCore {
     event Transfer(address indexed from, address indexed to, uint256 value);
     event Approval(address indexed owner, address indexed spender, uint256 value);
 
@@ -15,7 +15,7 @@ interface IERC20Core {
 }
 
 // Optional functions from the ERC20 standard.
-interface IERC20Metadata {
+interface IERC20TokenMetadata {
     function name() external view returns (string memory);
     function symbol() external view returns (string memory);
     function decimals() external view returns (uint8);
