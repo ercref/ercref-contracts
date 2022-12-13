@@ -11,29 +11,29 @@ All ERC interfaces will be moved to this folder.
 |165|Standard Interface Detection| Added |
 |173|Contract Ownership Standard| Added |
 |181|ENS support for reverse resolution of Ethereum addresses| Added |
-|190|Ethereum Smart Contract Packaging Standard| Pending prioritization|
-|191|Signed Data Standard|
-|600|Ethereum purpose allocation for Deterministic Wallets|
-|601|Ethereum hierarchy for deterministic wallets|
-|681|URL Format for Transaction Requests|
-|721|Non-Fungible Token Standard|
-|777|Token Standard|
-|820|Pseudo-introspection Registry Contract|
-|1155|Multi Token Standard|
-|1167|Minimal Proxy Contract|
-|1271|Standard Signature Validation Method for Contracts|
-|1363|Payable Token|
-|1820|Pseudo-introspection Registry Contract|
-|1967|Proxy Storage Slots|
-|2098|Compact Signature Representation|
-|2309|ERC-721 Consecutive Transfer Extension|
-|2535|Diamonds, Multi-Facet Proxy|
-|2612|Permit Extension for EIP-20 Signed Approvals|
-|2678|Revised Ethereum Smart Contract Packaging Standard (EthPM v3)|
-|2981|NFT Royalty Standard|
-|3156|Flash Loans|
-|3448|MetaProxy Standard|
-|3475|Abstract Storage Bonds|
+|190|Ethereum Smart Contract Packaging Standard| Pending prioritization |
+|191|Signed Data Standard| N/A |
+|600|Ethereum purpose allocation for Deterministic Wallets| N/A |
+|601|Ethereum hierarchy for deterministic wallets| N/A |
+|681|URL Format for Transaction Requests| N/A |
+|721|Non-Fungible Token Standard| Added |
+|777|Token Standard| Added |
+|820|Pseudo-introspection Registry Contract| Superseded |
+|1155|Multi Token Standard| Added |
+|1167|Minimal Proxy Contract| N/A |
+|1271|Standard Signature Validation Method for Contracts| Added |
+|1363|Payable Token| Added |
+|1820|Pseudo-introspection Registry Contract| Pending prioritization |
+|1967|Proxy Storage Slots| Added |
+|2098|Compact Signature Representation| N/A |
+|2309|ERC-721 Consecutive Transfer Extension| Added |
+|2535|Diamonds, Multi-Facet Proxy| Added |
+|2612|Permit Extension for EIP-20 Signed Approvals| Added |
+|2678|Revised Ethereum Smart Contract Packaging Standard (EthPM v3)| Pending prioritization |
+|2981|NFT Royalty Standard| Added |
+|3156|Flash Loans| Added |
+|3448|MetaProxy Standard| N/A |
+|3475|Abstract Storage Bonds| [Blocked](https://github.com/ethereum/EIPs/issues/6128) |
 |3525|Semi-Fungible Token|
 |3668|CCIP Read: Secure offchain data retrieval|
 |4400|EIP-721 Consumable Extension|
