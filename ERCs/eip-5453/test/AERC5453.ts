@@ -5,20 +5,19 @@ import { ethers } from "hardhat";
 describe("AERC5453", function () {
     async function deployFixture() {
         // Contracts are deployed using the first signer/account by default
-        const [owner, otherAccount] = await ethers.getSigners();
+        const [owner, account1, account2, account3] = await ethers.getSigners();
         const Erc5453ForTesting = await ethers.getContractFactory("ERC5453ForTesting");
         const erc5453ForTesting = await Erc5453ForTesting.deploy();
-        return { erc5453ForTesting, owner, otherAccount };
+
+        const Erc721ForTesting = await ethers.getContractFactory("ERC721ForTesting");
+        const erc721ForTesting = await Erc721ForTesting.deploy();
+        await erc721ForTesting.transferOwnership(erc5453ForTesting.address);
+        return { erc5453ForTesting, erc721ForTesting, owner, account1, account2, account3 };
     }
 
     describe("Deployment", function () {
         it("Should be deployable", async function () {
             await loadFixture(deployFixture);
-        });
-
-        it("Should be deployable", async function () {
-            const { erc5453ForTesting } = await loadFixture(deployFixture);
-            
         });
     });
 });
