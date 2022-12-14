@@ -1,80 +1,55 @@
 // SPDX-License-Identifier: Apache-2.0
 // Author: Zainan Victor Zhou <zzn-ercref@zzn.im>
 
-
 pragma solidity ^0.8.9;
 
-import "@openzeppelin/contracts/utils/SignatureChecker.sol";
-import "./IERC5453.sol";
+import "@openzeppelin/contracts/utils/cryptography/SignatureChecker.sol";
 
 struct SingleEndorsementData {
-    endorserAddress: address; // 32
-    endorserNounce: uint256;  // 32
-    validSince: uint256;      // 32
-    validBy: uint256;         // 32
-    r: bytes32;               // 32
-    s: bytes32;               // 32
-    v: bytes1;                // 1
-                              // SUM: 161
+    address endorserAddress; // 32
+    uint256 endorserNounce;  // 32
+    uint256 validSince;      // 32
+    uint256 validBy;         // 32
+    bytes sig;               // dynamic = 65
+                             // SUM: 161
 }
 
-struct SingleEndorsement {
-    SingleEndorsementData data;
-    formatType: bytes2; // MUST be 0x0001
-    magicWord: bytes8;
+struct GeneralExtensonData {
+    bytes32 magicWord;
+    uint256 verson;
+    bytes payload;
 }
 
-struct MultiEndorsement {
-    SingleEndorsementData[] data;
-    dataLength: bytes4; // TBD: How long
-    formatType: bytes2; // MUST be 0x0002
-    magicWord: bytes8;
-}
-
-abstract contract Endorsible is IERC5453 {
+contract AERC5453Endorsible {
     mapping(address => uint256) endorserNounces;
-    bytes8 constant MAGIC_WORLD = 0x5453454e4f524445; // ASCII of "ENDORSED"
-    bytes2 constant SINGLE_ENDORSER_TYPE = 0x0001;
-    bytes2 constant MULTI_ENDORSER_TYPE = 0x0002;
+    bytes32 constant MAGIC_WORLD = keccak256("ENDORSEMENT"); // ASCII of "ENDORSED"
+    uint256 constant VERSION_SINGLE = 1;
+    uint256 constant VERSION_MULTIPLE = 2;
 
-    function _isEligibleEndorser(uint256 _eligibilityIdentifier, address _endorser) virtual internal;
-
-    function _parseEndorser(
-        uint256 _eligibilityIdentifier,
-        bytes32 _msgDigest,
-        bytes calldata _e // endorsemetn
-    ) returns (address) {
-        require(_e[_e.length - 8:] == MAGIC_WORLD);
-        byte2 erc5453FormatType = _e[_e.length - 10:_e.length - 8];
-        if (erc5453FormatType == SINGLE_ENDORSER_TYPE) {
-            SingleEndorsement memory endorsement = abi.decode(_e[_e.length - SingleEndorsement.length:], (SingleEndorsement));
-            require(endorsement.validSince <= block.number);
-            require(endorsement.validBy >= block.number);
-            require(endorsement.data.endorserNounce == endorserNounces[endorsement.data.endorserAddress]);
-            endorserNounces[endorsement.data.endorserAddress] += 1;
-            require(SignatureChecker.isValidSignatureNow(
-                endorsement.data.endorserAddress,
-                _msgDigest,
-                abi.encodePacked(endorsement.data.r, endorsement.data.s, endorsement.data.v)
-            ));
-            return endorsement.data.endorserAddress;
-        } else if (erc5453FormatType == MULTI_ENDORSER_TYPE) {
-            // bytes4 length = _e[_e.length - 14:_e.length - 10];
-            // SingleEndorsement dataItems = new SingleEndorsement[length]();
-            // ... Go through each of the endorsers and return a list.
-        }
-
-        else {
-            revert("Unsupported endorsement format");
+    function _validate(bytes32 msgDigest, SingleEndorsementData memory endersement) internal virtual {
+            require(SignatureChecker.isValidSignatureNow(endersement.endorserAddress, msgDigest, endersement.sig));
+            require(endorserNounces[endersement.endorserAddress] == endersement.endorserNounce);
+            require(block.number>= endersement.validSince && block.number <= endersement.validBy);
+            endorserNounces[endersement.endorserAddress] += 1;
+    }
+    function _extractEndorsers(bytes32 digest, GeneralExtensonData memory data) internal virtual returns (address[] memory endorsers) {
+        require(data.magicWord == MAGIC_WORLD);
+        if (data.verson == VERSION_SINGLE) {
+            SingleEndorsementData memory endersement = abi.decode(data.payload, (SingleEndorsementData));
+            endorsers = new address[](1);
+            endorsers[0] = endersement.endorserAddress;
+            _validate(digest, endersement);
+        } else if (data.verson == VERSION_MULTIPLE) {
+            SingleEndorsementData[] memory endorsements = abi.decode(data.payload, (SingleEndorsementData[]));
+            endorsers = new address[](endorsements.length);
+            for (uint256 i = 0; i < endorsements.length; ++i) {
+                endorsers[i] = endorsements[i].endorserAddress;
+                _validate(digest, endorsements[i]);
+            }
+            return endorsers;
         }
     }
-    modifier onlyEndorsed(
-        uint256 _eligibilityIdentifier,
-        bytes32 _msgDigest,
-        bytes calldata _e // endorsement
-    ) {
-        address endorser = _parseEndorser(_eligibilityIdentifier, _msgDigest, _e);
-        require(_isEligibleEndorser(_eligibilityIdentifier, endorser));
-        _;
+    function _extractExtension(bytes memory extraData) internal virtual returns (GeneralExtensonData memory) {
+        return abi.decode(extraData, (GeneralExtensonData));
     }
 }
