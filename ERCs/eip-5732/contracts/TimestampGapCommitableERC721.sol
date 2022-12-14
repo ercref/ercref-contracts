@@ -5,7 +5,7 @@
 pragma solidity ^0.8.17;
 
 import "./IERC5732.sol";
-import "./BlocknumGapCommit.sol";
+import "./TimestampGapCommit.sol";
 import "@openzeppelin/contracts/utils/introspection/ERC165.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 
@@ -18,17 +18,17 @@ import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 /// Step2. After sometime, that same user calls the "mint" with the actual
 ///     `tokenId` to mint the token, which reveals the token.
 ///     The mint request also contains the a `secret_sault` in its ExtraData.
-contract CommitableERC721 is ERC721, BlocknumGapCommit {
-    uint256 constant MANDATORY_BLOCKNUM_GAP = 6;
+contract TimestampGapCommitableERC721 is ERC721, TimestampGapCommit {
+    uint256 constant MANDATORY_TIMESTAMP_GAP = 60;
     constructor()
-        ERC721("CommitToMintImpl", "CTMI")
-        AERCRef("CommitToMintImpl", 2) {}
+        ERC721("TimestampGapCommitableERC721", "TGCTMI")
+        AERCRef("TimestampGapCommitableERC721", 2) {}
 
     function supportsInterface(bytes4 interfaceId)
         public
         view
         virtual
-        override(ERC721, BlocknumGapCommit)
+        override(ERC721, TimestampGapCommit)
         returns (bool)
     {
         return super.supportsInterface(interfaceId);
@@ -41,7 +41,7 @@ contract CommitableERC721 is ERC721, BlocknumGapCommit {
     )   onlyCommited(
             abi.encodePacked(_to, _tokenId),
             bytes32(_extraData[0:32]), // The first 32bytes of safeMint._extraData is being used as salt
-            MANDATORY_BLOCKNUM_GAP
+            MANDATORY_TIMESTAMP_GAP
         )
         external {
         _safeMint(_to, _tokenId); // ignoring _extraData in this simple reference implementation.

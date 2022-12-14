@@ -1,10 +1,11 @@
 import '@nomicfoundation/hardhat-toolbox';
 import '@nomiclabs/hardhat-ethers';
 import '@openzeppelin/hardhat-upgrades';
-import { HardhatUserConfig } from 'hardhat/config';
+import {HardhatUserConfig} from 'hardhat/config';
 import * as dotenv from 'dotenv';
-import "@nomiclabs/hardhat-ethers";
 import "hardhat-depver";
+
+import "./tasks/resolve";
 
 dotenv.config();
 
@@ -20,12 +21,17 @@ const config: HardhatUserConfig = {
     gnosis: {
       url: `https://rpc.gnosischain.com`,
       accounts: { mnemonic: process.env.MNEMONIC as string }
+    },
+    mumbai: {
+      url: `https://rpc-mumbai.maticvigil.com/`,
+      accounts: { mnemonic: process.env.MNEMONIC as string }
     }
   },
   etherscan: {
     apiKey: {
       goerli: process.env.ETHERSCAN_API_KEY as string,
       gnosis: process.env.GNOSIS_API_KEY as string,
+      mumbai: process.env.POLYGON_API_KEY as string,
     },
     customChains: [
       {
@@ -35,7 +41,7 @@ const config: HardhatUserConfig = {
           apiURL: "https://api.gnosisscan.io/api",
           browserURL: "https://gnosisscan.io"
         }
-      }
+      },
     ]
   },
 };

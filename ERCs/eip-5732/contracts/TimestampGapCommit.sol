@@ -17,7 +17,7 @@ import "@openzeppelin/contracts/utils/introspection/ERC165.sol";
 /// Step2. After sometime, that same user calls the "mint" with the actual
 ///     `tokenId` to mint the token, which reveals the token.
 ///     The mint request also contains the a `secret_sault` in its ExtraData.
-abstract contract BlocknumGapCommit is AERCRef, IERC_COMMIT_CORE, IERC_COMMIT_GENERAL, ERC165 {
+abstract contract TimestampGapCommit is AERCRef, IERC_COMMIT_CORE, IERC_COMMIT_GENERAL, ERC165 {
     mapping(address => bytes32) private commitments;
     mapping(address => uint256) private commitTimes;
 
@@ -54,10 +54,10 @@ abstract contract BlocknumGapCommit is AERCRef, IERC_COMMIT_CORE, IERC_COMMIT_GE
     ) internal virtual returns(uint256)  {
         // For simplicity, it's ok to update commitment if it's already set.
         commitments[msg.sender] = _commitment;
-        uint256 blocknum = block.number;
-        commitTimes[msg.sender] = blocknum;
-        emit Commit(blocknum, _from, _commitment, _extraData);
-        return blocknum;
+        uint256 timestamp = block.timestamp;
+        commitTimes[msg.sender] = timestamp;
+        emit Commit(timestamp, _from, _commitment, _extraData);
+        return timestamp;
     }
 
     function calculateCommitment(
@@ -71,16 +71,16 @@ abstract contract BlocknumGapCommit is AERCRef, IERC_COMMIT_CORE, IERC_COMMIT_GE
     function _reveal(
         bytes memory _dataToSeal,
         bytes32 _salt,
-        uint256 gap
+        uint256 gap // timestamp gap in seconds
     ) internal virtual returns(bool) {
         require(
             commitments[msg.sender] == keccak256(abi.encodePacked(_dataToSeal, _salt)),
-            "BlocknumGapCommit: Invalid commitment"
+            "TimestampGapCommit: Invalid commitment"
         );
 
         require(
-            block.number >= commitTimes[msg.sender] + gap,
-            "BlocknumGapCommit: Not enough commitment block gap yet."
+            block.timestamp >= commitTimes[msg.sender] + gap,
+            "TimestampGapCommit: Not enough commitment timestamp gap yet."
         );
         // For simplicity, it's ok to mint to anyone.
         // Please DO NOT USE this in production.
@@ -92,12 +92,12 @@ abstract contract BlocknumGapCommit is AERCRef, IERC_COMMIT_CORE, IERC_COMMIT_GE
     /// @dev A modifier for reveal function
     /// @param _dataToSeal The data to seal in the commitments
     /// @param _salt The salt to seal in the commitments
-    /// @param _gap The blocknum gap to wait before minting.
+    /// @param _gap The timestamp gap to wait before minting.
     modifier onlyCommited(
         bytes memory _dataToSeal,
         bytes32 _salt,
         uint256 _gap) {
-        require(_reveal(_dataToSeal, _salt, _gap), "BlocknumGapCommit: Not commited or invalid commitment.");
+        require(_reveal(_dataToSeal, _salt, _gap), "TimestampGapCommit: Not commited or invalid commitment.");
         _;
     }
 }
