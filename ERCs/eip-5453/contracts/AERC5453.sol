@@ -4,13 +4,21 @@
 pragma solidity ^0.8.9;
 
 import "@openzeppelin/contracts/utils/cryptography/SignatureChecker.sol";
+import "@openzeppelin/contracts/utils/cryptography/EIP712.sol";
+
+struct ValidityBound {
+    bytes32 functionParamStructHash;
+    uint256 validSince;
+    uint256 validBy;
+    uint256 nonce;
+}
 
 struct SingleEndorsementData {
     address endorserAddress; // 32
-    bytes sig;               // dynamic = 65
+    bytes sig; // dynamic = 65
 }
 
-struct GeneralExtensonData {
+struct GeneralExtensonDataStruct {
     bytes32 magicWord;
     uint256 verson;
     uint256 nonce;
@@ -19,7 +27,7 @@ struct GeneralExtensonData {
     bytes payload;
 }
 
-abstract contract AERC5453Endorsible {
+abstract contract AERC5453Endorsible is EIP712 {
     uint256 private threshold;
 
     uint256 currentNonce = 0;
@@ -27,10 +35,28 @@ abstract contract AERC5453Endorsible {
     uint256 constant VERSION_SINGLE = 1;
     uint256 constant VERSION_MULTIPLE = 2;
 
-    function _validate(bytes32 msgDigest, SingleEndorsementData memory endersement) internal virtual {
-            require(SignatureChecker.isValidSignatureNow(endersement.endorserAddress, msgDigest, endersement.sig));
+    constructor(
+        string memory _name,
+        string memory _version
+    ) EIP712(_name, _version) {}
+
+    function _validate(
+        bytes32 msgDigest,
+        SingleEndorsementData memory endersement
+    ) internal virtual {
+        require(
+            SignatureChecker.isValidSignatureNow(
+                endersement.endorserAddress,
+                msgDigest,
+                endersement.sig
+            )
+        );
     }
-    function _extractEndorsers(bytes32 digest, GeneralExtensonData memory data) internal virtual returns (address[] memory endorsers) {
+
+    function _extractEndorsers(
+        bytes32 digest,
+        GeneralExtensonDataStruct memory data
+    ) internal virtual returns (address[] memory endorsers) {
         require(data.magicWord == MAGIC_WORLD);
         require(data.validSince <= block.timestamp);
         require(data.validBy >= block.timestamp);
@@ -38,12 +64,18 @@ abstract contract AERC5453Endorsible {
         currentNonce += 1;
 
         if (data.verson == VERSION_SINGLE) {
-            SingleEndorsementData memory endersement = abi.decode(data.payload, (SingleEndorsementData));
+            SingleEndorsementData memory endersement = abi.decode(
+                data.payload,
+                (SingleEndorsementData)
+            );
             endorsers = new address[](1);
             endorsers[0] = endersement.endorserAddress;
             _validate(digest, endersement);
         } else if (data.verson == VERSION_MULTIPLE) {
-            SingleEndorsementData[] memory endorsements = abi.decode(data.payload, (SingleEndorsementData[]));
+            SingleEndorsementData[] memory endorsements = abi.decode(
+                data.payload,
+                (SingleEndorsementData[])
+            );
             endorsers = new address[](endorsements.length);
             for (uint256 i = 0; i < endorsements.length; ++i) {
                 endorsers[i] = endorsements[i].endorserAddress;
@@ -52,8 +84,11 @@ abstract contract AERC5453Endorsible {
             return endorsers;
         }
     }
-    function _extractExtension(bytes memory extraData) internal virtual returns (GeneralExtensonData memory) {
-        return abi.decode(extraData, (GeneralExtensonData));
+
+    function _extractExtension(
+        bytes memory extensionData
+    ) internal virtual returns (GeneralExtensonDataStruct memory) {
+        return abi.decode(extensionData, (GeneralExtensonDataStruct));
     }
 
     // Well, I know this is epensive. Let's improve it later.
@@ -68,11 +103,19 @@ abstract contract AERC5453Endorsible {
         return true;
     }
 
-    function _isEndorsed(bytes memory _methodName, bytes32 _dataDigest, bytes calldata _extraData) internal returns (bool) {
-        GeneralExtensonData memory _data = _extractExtension(_extraData);
-        bytes memory dataWithValidityBound = abi.encodePacked(_dataDigest, _data.validSince, _data.validBy, _data.nonce);
-        // TODO better packing for EIP712
-        bytes32 finalDigest = _computeDigest(_methodName, dataWithValidityBound);
+    function _isEndorsed(
+        bytes32 _functionParamStructHash,
+        bytes calldata _extraData
+    ) internal returns (bool) {
+        GeneralExtensonDataStruct memory _data = _extractExtension(_extraData);
+
+        bytes32 finalDigest = _computeDigestWithBound(
+            _functionParamStructHash,
+            _data.validSince,
+            _data.validBy,
+            _data.nonce
+        );
+
         address[] memory endorsers = _extractEndorsers(finalDigest, _data);
         require(endorsers.length >= threshold);
         require(_noRepeat(endorsers));
@@ -82,58 +125,62 @@ abstract contract AERC5453Endorsible {
         return true;
     }
 
-    function _isEligibleEndorser(address _endorser) internal virtual view returns (bool) {return false;}
+    function _isEligibleEndorser(
+        address _endorser
+    ) internal view virtual returns (bool) {
+        return false;
+    }
 
-    modifier onlyEndorsed(bytes memory _methodName, bytes32 _dataDigest, bytes calldata _extraData) {
-        require(_isEndorsed(_methodName, _dataDigest, _extraData));
+    modifier onlyEndorsed(
+        bytes32 _functionParamStructHash,
+        bytes calldata _extensionData
+    ) {
+        require(_isEndorsed(_functionParamStructHash, _extensionData));
         _;
     }
 
-
-    function _eip712DomainTypeHash() internal pure returns (bytes32) {
-        return
-            keccak256(
-                "EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"
-            );
-    }
-
-    function _eip712DomainSeparator() internal view returns (bytes32) {
-        return
-            keccak256(
-                abi.encode(
-                    _eip712DomainTypeHash(),
-                    keccak256(bytes("DoubleGuardianForwarder")),
-                    keccak256(bytes("1")),
-                    block.chainid,
-                    address(this)
-                )
-            );
-    }
-
-    function eip712DomainSeparator() external view returns (bytes32) {
-        return _eip712DomainSeparator();
-    }
-
-    function _computeDigest(
-        bytes memory _name,
-        bytes memory _dataWithValidityBound
+    function _computeDigestWithBound(
+        bytes32 _functionParamStructHash,
+        uint256 _validSince,
+        uint256 _validBy,
+        uint256 _nonce
     ) internal view returns (bytes32) {
         return
-            keccak256(
-                abi.encodePacked(
-                    "\x19\x01",
-                    _eip712DomainSeparator(),
-                    keccak256(
-                        abi.encode(
-                            keccak256(_name),
-                            _dataWithValidityBound
-                        )
-                    )
-                )
+            super._hashTypedDataV4(
+                keccak256(
+                    abi.encode(keccak256("ValidityBound(bytes32 _functionParamStructHash,uint256 validSince,uint256 validBy,uint256 nonce)"),
+                    _functionParamStructHash,
+                    _validSince,
+                    _validBy,
+                    _nonce
+                ))
             );
     }
 
-    function setThreshold(uint256 _threshold) internal {
+    function _computeFunctionParamStructHash(
+        string memory _functionName,
+        bytes memory _functionParamPacked) internal pure returns (bytes32) {
+        return keccak256(abi.encodePacked(keccak256(bytes(_functionName)), _functionParamPacked));
+    }
+
+
+
+    function _setThreshold(uint256 _threshold) internal virtual {
         threshold = _threshold;
+    }
+
+    function computeDigestWithBound(
+        bytes32 _functionParamStructHash,
+        uint256 _validSince,
+        uint256 _validBy,
+        uint256 _nonce
+    ) external view returns (bytes32) {
+        return _computeDigestWithBound(_functionParamStructHash, _validSince, _validBy, _nonce);
+    }
+
+    function computeFunctionParamStructHash(
+        string memory _functionName,
+        bytes memory _functionParamPacked) external pure returns (bytes32) {
+        return _computeFunctionParamStructHash(_functionName, _functionParamPacked);
     }
 }
