@@ -4,20 +4,10 @@ pragma solidity ^0.8.17;
 
 import "./AERC5453.sol";
 
-import "@openzeppelin/contracts/utils/Address.sol";
-
-contract DoubleGuardianForwarder is AERC5453Endorsible {
+contract ThresholdMultiSigForwarder is AERC5453Endorsible {
     mapping(address => bool) private owners;
+    uint256 private ownerCount;
     uint256 private threshold;
-
-    function computeDigest(
-        address _dest,
-        uint256 _value,
-        uint256 _gasLimit,
-        bytes calldata _calldata
-    ) external view returns (bytes32) {
-        return _computeDigest(_dest, _value, _gasLimit, _calldata);
-    }
 
     function _eip712DomainTypeHash() internal pure returns (bytes32) {
         return
@@ -44,10 +34,8 @@ contract DoubleGuardianForwarder is AERC5453Endorsible {
     }
 
     function _computeDigest(
-        address _dest,
-        uint256 _value,
-        uint256 _gasLimit,
-        bytes calldata _calldata
+        bytes memory _name,
+        bytes memory _dataWithValidityBound
     ) internal view returns (bytes32) {
         return
             keccak256(
@@ -56,26 +44,27 @@ contract DoubleGuardianForwarder is AERC5453Endorsible {
                     _eip712DomainSeparator(),
                     keccak256(
                         abi.encode(
-                            keccak256("forward(address,uint256,uint256,bytes)"),
-                            _dest,
-                            _value,
-                            _gasLimit,
-                            _calldata
+                            keccak256(_name),
+                            _dataWithValidityBound
                         )
                     )
                 )
             );
     }
 
+
     function initialize(
         address[] calldata _owners,
         uint256 _threshold
     ) external {
+        require(threshold == 0, "Already initialized");
+        require(_threshold >= 1, "Threshold must be positive");
         require(_owners.length >= _threshold);
         require(noRepeat(_owners));
         for (uint256 i = 0; i < _owners.length; i++) {
             owners[_owners[i]] = true;
         }
+        ownerCount = _owners.length;
         threshold = _threshold;
     }
 
@@ -97,19 +86,35 @@ contract DoubleGuardianForwarder is AERC5453Endorsible {
         uint256 _gasLimit,
         bytes calldata _calldata,
         bytes calldata _extraData
-    ) external {
-        bytes32 _digest = _computeDigest(_dest, _value, _gasLimit, _calldata);
-        GeneralExtensonData memory _data = _extractExtension(_extraData);
-        address[] memory endorsers = _extractEndorsers(_digest, _data);
-        require(endorsers.length >= threshold);
-        require(noRepeat(endorsers));
-        for (uint256 i = 0; i < endorsers.length; i++) {
-            require(owners[endorsers[i]]); // everyone is a legit endorser
-        }
+    )
+    onlyEndorsed(
+        "function forward(address _dest,uint256 _value,uint256 _gasLimit,bytes calldata _calldata,bytes calldata _extraData)",
+        keccak256(abi.encodePacked(_dest, _value, _gasLimit, _calldata)),
+        _extraData)
+    external {
         string memory errorMessage = "Fail to call remote contract";
         (bool success, bytes memory returndata) = _dest.call{value: _value}(
             _calldata
         );
         Address.verifyCallResult(success, returndata, errorMessage);
+    }
+
+    function _isEndorsed(bytes memory _methodName, bytes32 _dataDigest, bytes calldata _extraData) internal returns (bool) {
+        GeneralExtensonData memory _data = _extractExtension(_extraData);
+        bytes memory dataWithValidityBound = abi.encodePacked(_dataDigest, _data.validSince, _data.validBy, _data.nonce);
+        // TODO better packing for EIP712
+        bytes32 finalDigest = _computeDigest(_methodName, dataWithValidityBound);
+        address[] memory endorsers = _extractEndorsers(finalDigest, _data);
+        require(endorsers.length >= threshold);
+        require(noRepeat(endorsers));
+        for (uint256 i = 0; i < endorsers.length; i++) {
+            require(owners[endorsers[i]]); // everyone is a legit endorser
+        }
+        return true;
+    }
+
+    modifier onlyEndorsed(bytes memory _methodName, bytes32 _dataDigest, bytes calldata _extraData) {
+        require(_isEndorsed(_methodName, _dataDigest, _extraData));
+        _;
     }
 }

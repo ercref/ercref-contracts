@@ -7,9 +7,6 @@ import "@openzeppelin/contracts/utils/cryptography/SignatureChecker.sol";
 
 struct SingleEndorsementData {
     address endorserAddress; // 32
-    uint256 endorserNounce;  // 32
-    uint256 validSince;      // 32
-    uint256 validBy;         // 32
     bytes sig;               // dynamic = 65
                              // SUM: 161
 }
@@ -17,23 +14,28 @@ struct SingleEndorsementData {
 struct GeneralExtensonData {
     bytes32 magicWord;
     uint256 verson;
+    uint256 nonce;
+    uint256 validSince;
+    uint256 validBy;
     bytes payload;
 }
 
-contract AERC5453Endorsible {
-    mapping(address => uint256) endorserNounces;
+abstract contract AERC5453Endorsible {
+    uint256 currentNonce = 0;
     bytes32 constant MAGIC_WORLD = keccak256("ENDORSEMENT"); // ASCII of "ENDORSED"
     uint256 constant VERSION_SINGLE = 1;
     uint256 constant VERSION_MULTIPLE = 2;
 
     function _validate(bytes32 msgDigest, SingleEndorsementData memory endersement) internal virtual {
             require(SignatureChecker.isValidSignatureNow(endersement.endorserAddress, msgDigest, endersement.sig));
-            require(endorserNounces[endersement.endorserAddress] == endersement.endorserNounce);
-            require(block.number>= endersement.validSince && block.number <= endersement.validBy);
-            endorserNounces[endersement.endorserAddress] += 1;
     }
     function _extractEndorsers(bytes32 digest, GeneralExtensonData memory data) internal virtual returns (address[] memory endorsers) {
         require(data.magicWord == MAGIC_WORLD);
+        require(data.validSince <= block.timestamp);
+        require(data.validBy >= block.timestamp);
+        require(currentNonce == data.nonce);
+        currentNonce += 1;
+
         if (data.verson == VERSION_SINGLE) {
             SingleEndorsementData memory endersement = abi.decode(data.payload, (SingleEndorsementData));
             endorsers = new address[](1);
