@@ -43,14 +43,14 @@ abstract contract AERC5453Endorsible is EIP712 {
         bytes32 msgDigest,
         SingleEndorsementData memory endersement
     ) internal virtual {
-        require(endersement.sig.length == 65, "Invalid signature length"); // XXXx
+        require(endersement.sig.length == 65, "AERC5453Endorsible: wrong signature length"); // XXXx
         require(
             SignatureChecker.isValidSignatureNow(
                 endersement.endorserAddress,
                 msgDigest,
                 endersement.sig
             ),
-            "Invalid signature"
+            "AERC5453Endorsible: invalid signature"
         );
     }
 
@@ -58,10 +58,10 @@ abstract contract AERC5453Endorsible is EIP712 {
         bytes32 digest,
         GeneralExtensonDataStruct memory data
     ) internal virtual returns (address[] memory endorsers) {
-        require(data.magicWord == MAGIC_WORLD);
-        require(data.validSince <= block.number);
-        require(data.validBy >= block.number);
-        require(currentNonce == data.nonce);
+        require(data.magicWord == MAGIC_WORLD, "AERC5453Endorsible: MagicWord not matched");
+        require(data.validSince <= block.number, "AERC5453Endorsible: Not valid yet"); // TODO consider per-Endorser validSince
+        require(data.validBy >= block.number, "AERC5453Endorsible: Expired"); // TODO consider per-Endorser validBy
+        require(currentNonce == data.nonce, "AERC5453Endorsible: Nonce not matched");  // TODO consider per-Endorser nonce or range of nonce
         currentNonce += 1;
 
         if (data.verson == VERSION_SINGLE) {

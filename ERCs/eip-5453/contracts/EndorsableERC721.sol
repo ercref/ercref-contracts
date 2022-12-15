@@ -32,5 +32,4 @@ contract EndorsableERC721 is ERC721, AERC5453Endorsible {
     function _isEligibleEndorser(address _endorser) internal view override returns (bool) {
         return owners[_endorser];
     }
-
 }
