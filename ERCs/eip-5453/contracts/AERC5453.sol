@@ -44,7 +44,10 @@ abstract contract AERC5453Endorsible is EIP712 {
         bytes32 msgDigest,
         SingleEndorsementData memory endersement
     ) internal virtual {
-        require(endersement.sig.length == 65, "AERC5453Endorsible: wrong signature length");
+        require(
+            endersement.sig.length == 65,
+            "AERC5453Endorsible: wrong signature length"
+        );
         require(
             SignatureChecker.isValidSignatureNow(
                 endersement.endorserAddress,
@@ -59,10 +62,19 @@ abstract contract AERC5453Endorsible is EIP712 {
         bytes32 digest,
         GeneralExtensonDataStruct memory data
     ) internal virtual returns (address[] memory endorsers) {
-        require(data.magicWord == MAGIC_WORLD, "AERC5453Endorsible: MagicWord not matched");
-        require(data.validSince <= block.number, "AERC5453Endorsible: Not valid yet"); // TODO consider per-Endorser validSince
+        require(
+            data.magicWord == MAGIC_WORLD,
+            "AERC5453Endorsible: MagicWord not matched"
+        );
+        require(
+            data.validSince <= block.number,
+            "AERC5453Endorsible: Not valid yet"
+        ); // TODO consider per-Endorser validSince
         require(data.validBy >= block.number, "AERC5453Endorsible: Expired"); // TODO consider per-Endorser validBy
-        require(currentNonce == data.nonce, "AERC5453Endorsible: Nonce not matched");  // TODO consider per-Endorser nonce or range of nonce
+        require(
+            currentNonce == data.nonce,
+            "AERC5453Endorsible: Nonce not matched"
+        ); // TODO consider per-Endorser nonce or range of nonce
         currentNonce += 1;
 
         if (data.verson == VERSION_SINGLE) {
@@ -120,10 +132,16 @@ abstract contract AERC5453Endorsible is EIP712 {
         );
 
         address[] memory endorsers = _extractEndorsers(finalDigest, _data);
-        require(endorsers.length >= threshold, "AERC5453Endorsable: not enough endorsers");
+        require(
+            endorsers.length >= threshold,
+            "AERC5453Endorsable: not enough endorsers"
+        );
         require(_noRepeat(endorsers));
         for (uint256 i = 0; i < endorsers.length; i++) {
-            require(_isEligibleEndorser(endorsers[i]), "AERC5453Endorsable: not eligible endorsers"); // everyone must be a legit endorser
+            require(
+                _isEligibleEndorser(endorsers[i]),
+                "AERC5453Endorsable: not eligible endorsers"
+            ); // everyone must be a legit endorser
         }
         return true;
     }
@@ -131,7 +149,6 @@ abstract contract AERC5453Endorsible is EIP712 {
     function _isEligibleEndorser(
         address /*_endorser*/
     ) internal view virtual returns (bool);
-
 
     modifier onlyEndorsed(
         bytes32 _functionParamStructHash,

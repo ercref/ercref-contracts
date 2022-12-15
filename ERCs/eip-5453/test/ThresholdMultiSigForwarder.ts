@@ -6,13 +6,13 @@ import { erc721 } from "../typechain-types/@openzeppelin/contracts/token";
 describe("ThresholdMultiSigForwarder", function () {
 
     async function computeExtensionData(
-        thresholdMultiSigForwarder:any,
-        testSigningKeys:any,
-        testSigningAddresses:any,
-        dest:any,
-        value:any,
-        gasLimit:any,
-        calldata:any,
+        thresholdMultiSigForwarder: any,
+        testSigningKeys: any,
+        testSigningAddresses: any,
+        dest: any,
+        value: any,
+        gasLimit: any,
+        calldata: any,
         {
             amountOfSigners = 1,
             numOfBlocksBeforeDeadline = 20,
@@ -58,8 +58,8 @@ describe("ThresholdMultiSigForwarder", function () {
     async function deployFixture() {
         // Contracts are deployed using the first signer/account by default
         const [owner, mintSender, recipient] = await ethers.getSigners();
-        const testSigningKeys:any[] = [];
-        const testSigningAddresses:any[] = [];
+        const testSigningKeys: any[] = [];
+        const testSigningAddresses: any[] = [];
         for (let i = 0; i < 10; i++) {
             testSigningKeys.push(new ethers.utils.SigningKey(ethers.utils.hexlify(ethers.utils.randomBytes(32))));
             testSigningAddresses.push(ethers.utils.computeAddress(testSigningKeys[i].publicKey));
@@ -81,7 +81,7 @@ describe("ThresholdMultiSigForwarder", function () {
         });
 
         it("Should be able to initialize owners", async function () {
-            const { thresholdMultiSigForwarder, owner, testSigningKeys, testSigningAddresses} = await loadFixture(deployFixture);
+            const { thresholdMultiSigForwarder, owner, testSigningKeys, testSigningAddresses } = await loadFixture(deployFixture);
             await thresholdMultiSigForwarder.connect(owner).initialize(testSigningAddresses, 5);
             for (let i = 0; i < testSigningAddresses.length; i++) {
                 expect(await thresholdMultiSigForwarder.isEligibleEndorser(testSigningAddresses[i])).to.equal(true);
@@ -89,7 +89,7 @@ describe("ThresholdMultiSigForwarder", function () {
         });
 
         it("Should be able to set eligible endorsers", async function () {
-            const { thresholdMultiSigForwarder, owner, testSigningKeys, testSigningAddresses} = await loadFixture(deployFixture);
+            const { thresholdMultiSigForwarder, owner, testSigningKeys, testSigningAddresses } = await loadFixture(deployFixture);
             await thresholdMultiSigForwarder.connect(owner).initialize(testSigningAddresses, 5);
             for (let i = 0; i < testSigningAddresses.length; i++) {
                 expect(await thresholdMultiSigForwarder.isEligibleEndorser(testSigningAddresses[i])).to.equal(true);
@@ -97,7 +97,7 @@ describe("ThresholdMultiSigForwarder", function () {
         });
 
         it("Should successfully forward a transferForm call to ERC721orTesting with sufficient endorsements", async function () {
-            const { thresholdMultiSigForwarder, erc721ForTesting, owner, testSigningKeys, testSigningAddresses} = await loadFixture(deployFixture);
+            const { thresholdMultiSigForwarder, erc721ForTesting, owner, testSigningKeys, testSigningAddresses } = await loadFixture(deployFixture);
             const targetTokenId = 0x1;
             await erc721ForTesting.connect(owner).mint(thresholdMultiSigForwarder.address, targetTokenId);
             expect(await erc721ForTesting.ownerOf(targetTokenId)).to.equal(thresholdMultiSigForwarder.address);
@@ -135,7 +135,7 @@ describe("ThresholdMultiSigForwarder", function () {
         });
 
         it("Should reject forwarding a transferForm call to ERC721orTesting with insufficient endorsements", async function () {
-            const { thresholdMultiSigForwarder, erc721ForTesting, owner, testSigningKeys, testSigningAddresses} = await loadFixture(deployFixture);
+            const { thresholdMultiSigForwarder, erc721ForTesting, owner, testSigningKeys, testSigningAddresses } = await loadFixture(deployFixture);
             const targetTokenId = 0x1;
             await erc721ForTesting.connect(owner).mint(thresholdMultiSigForwarder.address, targetTokenId);
             expect(await erc721ForTesting.ownerOf(targetTokenId)).to.equal(thresholdMultiSigForwarder.address);
@@ -157,7 +157,7 @@ describe("ThresholdMultiSigForwarder", function () {
                 0,
                 0,
                 calldata,
-                { amountOfSigners: threshold - 1});
+                { amountOfSigners: threshold - 1 });
             expect(await erc721ForTesting.balanceOf(targetRecipient)).to.equal(0);
             expect(await erc721ForTesting.balanceOf(thresholdMultiSigForwarder.address)).to.equal(1);
             expect(await erc721ForTesting.ownerOf(targetTokenId)).to.equal(thresholdMultiSigForwarder.address);
