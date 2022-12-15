@@ -103,8 +103,9 @@ describe("ThresholdMultiSigForwarder", function () {
             expect(await erc721ForTesting.ownerOf(targetTokenId)).to.equal(thresholdMultiSigForwarder.address);
             expect(await erc721ForTesting.balanceOf(thresholdMultiSigForwarder.address)).to.equal(1);
 
-            const numOfEligibleEndorsers = 3;
-            await thresholdMultiSigForwarder.connect(owner).initialize(testSigningAddresses.slice(0, numOfEligibleEndorsers), 2);
+            const numOfEligibleEndorsers = 5;
+            const threshold = 3;
+            await thresholdMultiSigForwarder.connect(owner).initialize(testSigningAddresses.slice(0, numOfEligibleEndorsers), threshold);
             for (let i = 0; i < numOfEligibleEndorsers; i++) {
                 expect(await thresholdMultiSigForwarder.isEligibleEndorser(testSigningAddresses[i])).to.equal(true);
             }
@@ -118,7 +119,7 @@ describe("ThresholdMultiSigForwarder", function () {
                 0,
                 0,
                 calldata,
-                { amountOfSigners: 2 });
+                { amountOfSigners: threshold });
             expect(await erc721ForTesting.balanceOf(targetRecipient)).to.equal(0);
             expect(await erc721ForTesting.balanceOf(thresholdMultiSigForwarder.address)).to.equal(1);
             expect(await erc721ForTesting.ownerOf(targetTokenId)).to.equal(thresholdMultiSigForwarder.address);
@@ -140,8 +141,9 @@ describe("ThresholdMultiSigForwarder", function () {
             expect(await erc721ForTesting.ownerOf(targetTokenId)).to.equal(thresholdMultiSigForwarder.address);
             expect(await erc721ForTesting.balanceOf(thresholdMultiSigForwarder.address)).to.equal(1);
 
-            const numOfEligibleEndorsers = 3;
-            await thresholdMultiSigForwarder.connect(owner).initialize(testSigningAddresses.slice(0, numOfEligibleEndorsers), 2);
+            const numOfEligibleEndorsers = 5;
+            const threshold = 3;
+            await thresholdMultiSigForwarder.connect(owner).initialize(testSigningAddresses.slice(0, numOfEligibleEndorsers), threshold);
             for (let i = 0; i < numOfEligibleEndorsers; i++) {
                 expect(await thresholdMultiSigForwarder.isEligibleEndorser(testSigningAddresses[i])).to.equal(true);
             }
@@ -155,7 +157,7 @@ describe("ThresholdMultiSigForwarder", function () {
                 0,
                 0,
                 calldata,
-                { amountOfSigners: 1 });
+                { amountOfSigners: threshold - 1});
             expect(await erc721ForTesting.balanceOf(targetRecipient)).to.equal(0);
             expect(await erc721ForTesting.balanceOf(thresholdMultiSigForwarder.address)).to.equal(1);
             expect(await erc721ForTesting.ownerOf(targetTokenId)).to.equal(thresholdMultiSigForwarder.address);
