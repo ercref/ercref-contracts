@@ -41,22 +41,6 @@ interface IERC5453EndorsementDigest {
         string memory _functionName,
         bytes memory _functionParamPacked
     ) external view returns (bytes32);
-
-    function computeExtensionDataTypeA(
-        uint256 nonce,
-        uint256 validSince,
-        uint256 validBy,
-        address endorserAddress,
-        bytes calldata sig
-    ) external view returns (bytes memory);
-
-    function computeExtensionDataTypeB(
-        uint256 nonce,
-        uint256 validSince,
-        uint256 validBy,
-        address[] calldata endorserAddress,
-        bytes[] calldata sigs
-    ) external view returns (bytes memory);
 }
 
 interface IERC5453EndorsementDataTypeA {

@@ -13,8 +13,8 @@ abstract contract AERC5453Endorsible is EIP712,
     uint256 private threshold;
     uint256 private currentNonce = 0;
     bytes32 constant MAGIC_WORLD = keccak256("ENDORSEMENT"); // ASCII of "ENDORSED"
-    uint256 constant VERSION_SINGLE = 1;
-    uint256 constant VERSION_MULTIPLE = 2;
+    uint256 constant ERC5453_TYPE_A = 1;
+    uint256 constant ERC5453_TYPE_B = 2;
 
     constructor(
         string memory _name,
@@ -58,7 +58,7 @@ abstract contract AERC5453Endorsible is EIP712,
         ); // TODO consider per-Endorser nonce or range of nonce
         currentNonce += 1;
 
-        if (data.verson == VERSION_SINGLE) {
+        if (data.verson == ERC5453_TYPE_A) {
             SingleEndorsementData memory endersement = abi.decode(
                 data.payload,
                 (SingleEndorsementData)
@@ -66,7 +66,7 @@ abstract contract AERC5453Endorsible is EIP712,
             endorsers = new address[](1);
             endorsers[0] = endersement.endorserAddress;
             _validate(digest, endersement);
-        } else if (data.verson == VERSION_MULTIPLE) {
+        } else if (data.verson == ERC5453_TYPE_B) {
             SingleEndorsementData[] memory endorsements = abi.decode(
                 data.payload,
                 (SingleEndorsementData[])
@@ -229,7 +229,7 @@ abstract contract AERC5453Endorsible is EIP712,
             abi.encode(
                 GeneralExtensonDataStruct(
                     MAGIC_WORLD,
-                    VERSION_SINGLE,
+                    ERC5453_TYPE_A,
                     nonce,
                     validSince,
                     validBy,
@@ -260,7 +260,7 @@ abstract contract AERC5453Endorsible is EIP712,
             abi.encode(
                 GeneralExtensonDataStruct(
                     MAGIC_WORLD,
-                    VERSION_MULTIPLE,
+                    ERC5453_TYPE_B,
                     nonce,
                     validSince,
                     validBy,
