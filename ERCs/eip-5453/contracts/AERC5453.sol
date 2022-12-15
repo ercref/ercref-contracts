@@ -5,6 +5,7 @@ pragma solidity ^0.8.9;
 
 import "@openzeppelin/contracts/utils/cryptography/SignatureChecker.sol";
 import "@openzeppelin/contracts/utils/cryptography/EIP712.sol";
+import "hardhat/console.sol";
 
 struct ValidityBound {
     bytes32 functionParamStructHash;
@@ -43,7 +44,7 @@ abstract contract AERC5453Endorsible is EIP712 {
         bytes32 msgDigest,
         SingleEndorsementData memory endersement
     ) internal virtual {
-        require(endersement.sig.length == 65, "AERC5453Endorsible: wrong signature length"); // XXXx
+        require(endersement.sig.length == 65, "AERC5453Endorsible: wrong signature length");
         require(
             SignatureChecker.isValidSignatureNow(
                 endersement.endorserAddress,
@@ -119,19 +120,18 @@ abstract contract AERC5453Endorsible is EIP712 {
         );
 
         address[] memory endorsers = _extractEndorsers(finalDigest, _data);
-        require(endorsers.length >= threshold);
+        require(endorsers.length >= threshold, "AERC5453Endorsable: not enough endorsers");
         require(_noRepeat(endorsers));
         for (uint256 i = 0; i < endorsers.length; i++) {
-            require(_isEligibleEndorser(endorsers[i])); // everyone is a legit endorser
+            require(_isEligibleEndorser(endorsers[i]), "AERC5453Endorsable: not eligible endorsers"); // everyone must be a legit endorser
         }
         return true;
     }
 
     function _isEligibleEndorser(
         address /*_endorser*/
-    ) internal view virtual returns (bool) {
-        return false;
-    }
+    ) internal view virtual returns (bool);
+
 
     modifier onlyEndorsed(
         bytes32 _functionParamStructHash,
@@ -282,7 +282,7 @@ abstract contract AERC5453Endorsible is EIP712 {
             abi.encode(
                 GeneralExtensonDataStruct(
                     MAGIC_WORLD,
-                    VERSION_SINGLE,
+                    VERSION_MULTIPLE,
                     nonce,
                     validSince,
                     validBy,

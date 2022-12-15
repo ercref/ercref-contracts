@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 // Author: Zainan Victor Zhou <zzn-ercref@zzn.im>
 pragma solidity ^0.8.9;
+import "hardhat/console.sol";
 
 import "./AERC5453.sol";
 
@@ -50,6 +51,12 @@ contract ThresholdMultiSigForwarder is AERC5453Endorsible {
     function _isEligibleEndorser(
         address _endorser
     ) internal view override returns (bool) {
-        return owners[_endorser];
+        return owners[_endorser] == true;
+    }
+
+    function isEligibleEndorser(
+        address _endorser
+    ) external view returns (bool) {
+        return _isEligibleEndorser(_endorser);
     }
 }
