@@ -28,7 +28,7 @@ describe("ThresholdMultiSigForwarder", function () {
             functionName,
             functionParamPacked
         );
-        currentNonce = currentNonce || await (await thresholdMultiSigForwarder.getCurrentNonce(thresholdMultiSigForwarder.address)).toNumber();
+        currentNonce = currentNonce || await (await thresholdMultiSigForwarder.eip5453Nonce(thresholdMultiSigForwarder.address)).toNumber();
         const latestBlock = await ethers.provider.getBlock("latest");
         const finalDigest = await thresholdMultiSigForwarder.computeValidityDigest(
             functionParamStructHash,

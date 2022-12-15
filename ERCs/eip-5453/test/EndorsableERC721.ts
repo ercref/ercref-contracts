@@ -30,7 +30,7 @@ describe("EndorsibleERC721", function () {
             functionName,
             functionParamPacked
         );
-        currentNonce = currentNonce || await (await endorsableERC721.getCurrentNonce(endorsableERC721.address)).toNumber();
+        currentNonce = currentNonce || await (await endorsableERC721.eip5453Nonce(endorsableERC721.address)).toNumber();
         const latestBlock = await ethers.provider.getBlock("latest");
         const finalDigest = await endorsableERC721.computeValidityDigest(
             functionParamStructHash,
@@ -141,7 +141,7 @@ describe("EndorsibleERC721", function () {
             const { endorsableERC721, mintSender } = await loadFixture(deployFixture);
             expect(await endorsableERC721.balanceOf(targetRecipient.address)).to.equal(0);
 
-            const currentNonce = await (await endorsableERC721.getCurrentNonce(
+            const currentNonce = await (await endorsableERC721.eip5453Nonce(
                 endorsableERC721.address)).toNumber();
             const extensionData = await computeExtensionData(targetRecipient.address, targetTokenId, { currentNonce: currentNonce + 1 });
             await expect(endorsableERC721.connect(mintSender).mint(targetRecipient.address, targetTokenId, extensionData))

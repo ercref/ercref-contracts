@@ -8,7 +8,8 @@ import "@openzeppelin/contracts/utils/cryptography/EIP712.sol";
 
 import "./IERC5453.sol";
 
-abstract contract AERC5453Endorsible is EIP712, IERC5453EndorsementCore, IERC5453EndorsementHelper {
+abstract contract AERC5453Endorsible is EIP712,
+    IERC5453EndorsementCore, IERC5453EndorsementDigest, IERC5453EndorsementDataTypeA, IERC5453EndorsementDataTypeB {
     uint256 private threshold;
     uint256 private currentNonce = 0;
     bytes32 constant MAGIC_WORLD = keccak256("ENDORSEMENT"); // ASCII of "ENDORSED"
@@ -203,9 +204,18 @@ abstract contract AERC5453Endorsible is EIP712, IERC5453EndorsementCore, IERC545
             );
     }
 
-    function getCurrentNonce(address addr) external view override returns (uint256) {
+    function eip5453Nonce(address addr) external view override returns (uint256) {
         require(address(this) == addr, "AERC5453Endorsable: not self");
         return currentNonce;
+    }
+
+    function isEligibleEndorser(address _endorser)
+        external
+        view
+        override
+        returns (bool)
+    {
+        return _isEligibleEndorser(_endorser);
     }
 
     function computeExtensionDataTypeA(

@@ -53,10 +53,4 @@ contract ThresholdMultiSigForwarder is AERC5453Endorsible {
     ) internal view override returns (bool) {
         return owners[_endorser] == true;
     }
-
-    function isEligibleEndorser(
-        address _endorser
-    ) external view returns (bool) {
-        return _isEligibleEndorser(_endorser);
-    }
 }
