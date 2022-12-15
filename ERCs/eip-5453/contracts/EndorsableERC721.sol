@@ -15,6 +15,7 @@ contract EndorsableERC721 is ERC721, AERC5453Endorsible {
             owners[msg.sender] = true;
         }
     function addOwner(address _owner) external {
+        require(owners[msg.sender], "EndorsableERC721: not owner");
         owners[_owner] = true;
     }
 

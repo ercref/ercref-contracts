@@ -27,7 +27,7 @@ describe("EndorsibleERC721", function () {
         });
 
         it("Should mintable if signer have a valid endorsement", async function () {
-            const { endorsableERC721, owner, mintSender, recipient, testSigner } = await loadFixture(deployFixture);
+            const { endorsableERC721, mintSender, recipient, testSigner } = await loadFixture(deployFixture);
             const testSignerAddress = ethers.utils.computeAddress(testSigner.publicKey);
             expect(await endorsableERC721.balanceOf(recipient.address)).to.equal(0);
             const functionName = "function mint(address _to,uint256 _tokenId)";
@@ -49,7 +49,6 @@ describe("EndorsibleERC721", function () {
             const validSince = latestBlock.number;
             const validBy = latestBlock.number + numOfBlocksBeforeDeadline;
             const signature = testSigner.signDigest(finalDigest);
-            const recoveredAddress = ethers.utils.recoverAddress(finalDigest, signature.compact);
             const sigPacked = ethers.utils.joinSignature(signature);
             const generalExtensionDataStruct = await endorsableERC721.computeGeneralExtensionDataStructForSingleEndorsementData(
                 currentNonce,
