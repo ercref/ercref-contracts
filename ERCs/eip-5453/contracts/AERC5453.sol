@@ -12,14 +12,14 @@ abstract contract AERC5453Endorsible is EIP712,
     IERC5453EndorsementCore, IERC5453EndorsementDigest, IERC5453EndorsementDataTypeA, IERC5453EndorsementDataTypeB {
     uint256 private threshold;
     uint256 private currentNonce = 0;
-    bytes32 constant MAGIC_WORLD = keccak256("ENDORSEMENT"); // ASCII of "ENDORSED"
+    bytes32 constant MAGIC_WORLD = keccak256("ERC5453-ENDORSEMENT"); // ASCII of "ENDORSED"
     uint256 constant ERC5453_TYPE_A = 1;
     uint256 constant ERC5453_TYPE_B = 2;
 
     constructor(
         string memory _name,
-        string memory _version
-    ) EIP712(_name, _version) {}
+        string memory _erc721Version
+    ) EIP712(_name, _erc721Version) {}
 
     function _validate(
         bytes32 msgDigest,
@@ -41,10 +41,10 @@ abstract contract AERC5453Endorsible is EIP712,
 
     function _extractEndorsers(
         bytes32 digest,
-        GeneralExtensonDataStruct memory data
+        GeneralExtensionDataStruct memory data
     ) internal virtual returns (address[] memory endorsers) {
         require(
-            data.magicWord == MAGIC_WORLD,
+            data.erc5453MagicWord == MAGIC_WORLD,
             "AERC5453Endorsible: MagicWord not matched"
         );
         require(
@@ -58,17 +58,17 @@ abstract contract AERC5453Endorsible is EIP712,
         ); // TODO consider per-Endorser nonce or range of nonce
         currentNonce += 1;
 
-        if (data.verson == ERC5453_TYPE_A) {
+        if (data.erc5453Type == ERC5453_TYPE_A) {
             SingleEndorsementData memory endersement = abi.decode(
-                data.payload,
+                data.endorsementPayload,
                 (SingleEndorsementData)
             );
             endorsers = new address[](1);
             endorsers[0] = endersement.endorserAddress;
             _validate(digest, endersement);
-        } else if (data.verson == ERC5453_TYPE_B) {
+        } else if (data.erc5453Type == ERC5453_TYPE_B) {
             SingleEndorsementData[] memory endorsements = abi.decode(
-                data.payload,
+                data.endorsementPayload,
                 (SingleEndorsementData[])
             );
             endorsers = new address[](endorsements.length);
@@ -82,8 +82,8 @@ abstract contract AERC5453Endorsible is EIP712,
 
     function _decodeExtensionData(
         bytes memory extensionData
-    ) internal pure virtual returns (GeneralExtensonDataStruct memory) {
-        return abi.decode(extensionData, (GeneralExtensonDataStruct));
+    ) internal pure virtual returns (GeneralExtensionDataStruct memory) {
+        return abi.decode(extensionData, (GeneralExtensionDataStruct));
     }
 
     // Well, I know this is epensive. Let's improve it later.
@@ -102,7 +102,7 @@ abstract contract AERC5453Endorsible is EIP712,
         bytes32 _functionParamStructHash,
         bytes calldata _extraData
     ) internal returns (bool) {
-        GeneralExtensonDataStruct memory _data = _decodeExtensionData(
+        GeneralExtensionDataStruct memory _data = _decodeExtensionData(
             _extraData
         );
         bytes32 finalDigest = _computeValidityDigest(
@@ -150,7 +150,7 @@ abstract contract AERC5453Endorsible is EIP712,
                 keccak256(
                     abi.encode(
                         keccak256(
-                            "ValidityBound(bytes32 _functionParamStructHash,uint256 validSince,uint256 validBy,uint256 nonce)"
+                            "ValidityBound(bytes32 functionParamStructHash,uint256 validSince,uint256 validBy,uint256 nonce)"
                         ),
                         _functionParamStructHash,
                         _validSince,
@@ -162,12 +162,12 @@ abstract contract AERC5453Endorsible is EIP712,
     }
 
     function _computeFunctionParamHash(
-        string memory _functionName,
+        string memory _functionStructure,
         bytes memory _functionParamPacked
     ) internal pure returns (bytes32) {
         bytes32 functionParamStructHash = keccak256(
             abi.encodePacked(
-                keccak256(bytes(_functionName)),
+                keccak256(bytes(_functionStructure)),
                 _functionParamPacked
             )
         );
@@ -227,7 +227,7 @@ abstract contract AERC5453Endorsible is EIP712,
     ) external pure override returns (bytes memory) {
         return
             abi.encode(
-                GeneralExtensonDataStruct(
+                GeneralExtensionDataStruct(
                     MAGIC_WORLD,
                     ERC5453_TYPE_A,
                     nonce,
@@ -258,7 +258,7 @@ abstract contract AERC5453Endorsible is EIP712,
         }
         return
             abi.encode(
-                GeneralExtensonDataStruct(
+                GeneralExtensionDataStruct(
                     MAGIC_WORLD,
                     ERC5453_TYPE_B,
                     nonce,
