@@ -3,9 +3,9 @@
 
 pragma solidity ^0.8.9;
 
-import "@openzeppelin/contracts/utils/cryptography/SignatureChecker.sol";
-import "@openzeppelin/contracts/utils/cryptography/EIP712.sol";
-
+import "./SignatureChecker.sol";
+import "./EIP712.sol";
+import "hardhat/console.sol";
 struct ValidityBound {
     bytes32 functionParamStructHash;
     uint256 validSince;
@@ -29,8 +29,7 @@ struct GeneralExtensonDataStruct {
 
 abstract contract AERC5453Endorsible is EIP712 {
     uint256 private threshold;
-
-    uint256 currentNonce = 0;
+    uint256 private currentNonce = 0;
     bytes32 constant MAGIC_WORLD = keccak256("ENDORSEMENT"); // ASCII of "ENDORSED"
     uint256 constant VERSION_SINGLE = 1;
     uint256 constant VERSION_MULTIPLE = 2;
@@ -44,13 +43,20 @@ abstract contract AERC5453Endorsible is EIP712 {
         bytes32 msgDigest,
         SingleEndorsementData memory endersement
     ) internal virtual {
+        // console.log("XXX solidity finalDigest before validate");
+        // console.logBytes32(msgDigest);
+        // console.log("XXX solidity sig");
+        // console.logBytes(endersement.sig);
+        // console.log("XXX solidity endorserAddress");
+        // console.logAddress(endersement.endorserAddress);
+        require(endersement.sig.length == 65, "Invalid signature length"); // XXXx
         require(
             SignatureChecker.isValidSignatureNow(
                 endersement.endorserAddress,
                 msgDigest,
                 endersement.sig
             )
-        );
+        , "Invalid signature");
     }
 
     function _extractEndorsers(
@@ -58,8 +64,8 @@ abstract contract AERC5453Endorsible is EIP712 {
         GeneralExtensonDataStruct memory data
     ) internal virtual returns (address[] memory endorsers) {
         require(data.magicWord == MAGIC_WORLD);
-        require(data.validSince <= block.timestamp);
-        require(data.validBy >= block.timestamp);
+        require(data.validSince <= block.number);
+        require(data.validBy >= block.number);
         require(currentNonce == data.nonce);
         currentNonce += 1;
 
@@ -85,9 +91,9 @@ abstract contract AERC5453Endorsible is EIP712 {
         }
     }
 
-    function _extractExtension(
+    function _decodeExtensionData(
         bytes memory extensionData
-    ) internal virtual returns (GeneralExtensonDataStruct memory) {
+    ) internal pure virtual returns (GeneralExtensonDataStruct memory) {
         return abi.decode(extensionData, (GeneralExtensonDataStruct));
     }
 
@@ -107,14 +113,17 @@ abstract contract AERC5453Endorsible is EIP712 {
         bytes32 _functionParamStructHash,
         bytes calldata _extraData
     ) internal returns (bool) {
-        GeneralExtensonDataStruct memory _data = _extractExtension(_extraData);
-
+        GeneralExtensonDataStruct memory _data = _decodeExtensionData(_extraData);
+        // console.log("XXX YYY solidity _isEndorsed _functionParamStructHash");
+        // console.logBytes32(_functionParamStructHash);
         bytes32 finalDigest = _computeDigestWithBound(
             _functionParamStructHash,
             _data.validSince,
             _data.validBy,
             _data.nonce
         );
+        // console.log("XXX solidity _isEndorsed finalDigest");
+        // console.logBytes32(finalDigest);
 
         address[] memory endorsers = _extractEndorsers(finalDigest, _data);
         require(endorsers.length >= threshold);
@@ -126,7 +135,7 @@ abstract contract AERC5453Endorsible is EIP712 {
     }
 
     function _isEligibleEndorser(
-        address _endorser
+        address /*_endorser*/
     ) internal view virtual returns (bool) {
         return false;
     }
@@ -135,6 +144,11 @@ abstract contract AERC5453Endorsible is EIP712 {
         bytes32 _functionParamStructHash,
         bytes calldata _extensionData
     ) {
+        console.log("XXX ------------------------------- onlyEndorsed -----------------------");
+        console.log("XXX ------------------------------- onlyEndorsed -----------------------");
+        console.log("XXX ------------------------------- onlyEndorsed -----------------------");
+        console.log("XXX ------------------------------- onlyEndorsed -----------------------");
+        console.log("XXX ------------------------------- onlyEndorsed -----------------------");
         require(_isEndorsed(_functionParamStructHash, _extensionData));
         _;
     }
@@ -159,11 +173,16 @@ abstract contract AERC5453Endorsible is EIP712 {
 
     function _computeFunctionParamStructHash(
         string memory _functionName,
-        bytes memory _functionParamPacked) internal pure returns (bytes32) {
-        return keccak256(abi.encodePacked(keccak256(bytes(_functionName)), _functionParamPacked));
+        bytes memory _functionParamPacked) internal view returns (bytes32) {
+        bytes32 functionParamStructHash = keccak256(abi.encodePacked(keccak256(bytes(_functionName)), _functionParamPacked));
+        // console.log("--------- XXX YYY solidity inside _functionName");
+        // console.logString(_functionName);
+        console.log("--------- XXX YYY solidity inside _functionParamPacked");
+        console.logBytes(_functionParamPacked);
+        // console.log("--------- XXX YYY solidity inside _functionParamStructHash");
+        // console.logBytes32(functionParamStructHash);
+        return functionParamStructHash;
     }
-
-
 
     function _setThreshold(uint256 _threshold) internal virtual {
         threshold = _threshold;
@@ -180,7 +199,69 @@ abstract contract AERC5453Endorsible is EIP712 {
 
     function computeFunctionParamStructHash(
         string memory _functionName,
-        bytes memory _functionParamPacked) external pure returns (bytes32) {
+        bytes memory _functionParamPacked) external view returns (bytes32) {
         return _computeFunctionParamStructHash(_functionName, _functionParamPacked);
+    }
+
+    function getCurrentNonce() external view returns (uint256) {
+        return currentNonce;
+    }
+
+    function encodeExtensionData(
+        GeneralExtensonDataStruct memory generalExtensonDataStruct
+    ) external pure returns (bytes memory) {
+        return abi.encode(generalExtensonDataStruct);
+    }
+
+    function decodeExtensionData(
+        bytes memory extensionData
+    ) external pure returns (GeneralExtensonDataStruct memory) {
+        return _decodeExtensionData(extensionData);
+    }
+
+    function computeGeneralExtensonDataStruct(
+        uint256 verson,
+        uint256 nonce,
+        uint256 validSince,
+        uint256 validBy,
+        bytes calldata payload
+    ) external pure returns (GeneralExtensonDataStruct memory) {
+        return GeneralExtensonDataStruct(MAGIC_WORLD, verson, nonce, validSince, validBy, payload);
+    }
+
+    function computeGeneralExtensionDataStructForSingleEndorsementData
+    (
+        uint256 nonce,
+        uint256 validSince,
+        uint256 validBy,
+        address endorserAddress,
+        bytes calldata sig
+    ) external view returns (bytes memory) {
+        console.log("XXX YYY solidity computeGeneralExtensionDataStructForSingleEndorsementData sig");
+        console.logBytes(sig);
+        console.log("XXX YYY solidity computeGeneralExtensionDataStructForSingleEndorsementData sig.length");
+        console.logUint(sig.length);
+
+        return abi.encode(GeneralExtensonDataStruct(
+            MAGIC_WORLD, VERSION_SINGLE, nonce, validSince, validBy,
+            abi.encode(SingleEndorsementData(endorserAddress, sig))));
+    }
+
+     function computeGeneralExtensionDataStructForMultipleEndorsementData
+    (
+        uint256 nonce,
+        uint256 validSince,
+        uint256 validBy,
+        address[] calldata endorserAddress,
+        bytes[] calldata sigs
+    ) external pure returns (bytes memory) {
+        require(endorserAddress.length == sigs.length);
+        SingleEndorsementData[] memory endorsements = new SingleEndorsementData[](endorserAddress.length);
+        for (uint256 i = 0; i < endorserAddress.length; ++i) {
+            endorsements[i] = SingleEndorsementData(endorserAddress[i], sigs[i]);
+        }
+        return abi.encode(GeneralExtensonDataStruct(
+            MAGIC_WORLD, VERSION_SINGLE, nonce, validSince, validBy,
+            abi.encode(endorsements)));
     }
 }

@@ -6,15 +6,17 @@ import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 
 import "./AERC5453.sol";
 
-contract EndorsableERC721ForTesting is ERC721, AERC5453Endorsible {
+contract EndorsableERC721 is ERC721, AERC5453Endorsible {
     mapping(address => bool) private owners;
-
     constructor()
         ERC721("ERC721ForTesting", "ERC721ForTesting")
         AERC5453Endorsible("EndorsableERC721", "v1")
         {
             owners[msg.sender] = true;
         }
+    function addOwner(address _owner) external {
+        owners[_owner] = true;
+    }
 
     function mint(address _to, uint256 _tokenId, bytes calldata _extraData)
     onlyEndorsed(
@@ -26,8 +28,8 @@ contract EndorsableERC721ForTesting is ERC721, AERC5453Endorsible {
         _mint(_to, _tokenId);
     }
 
-
     function _isEligibleEndorser(address _endorser) internal view override returns (bool) {
         return owners[_endorser];
     }
+
 }
