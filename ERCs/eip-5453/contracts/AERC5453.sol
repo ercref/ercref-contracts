@@ -5,30 +5,10 @@ pragma solidity ^0.8.9;
 
 import "@openzeppelin/contracts/utils/cryptography/SignatureChecker.sol";
 import "@openzeppelin/contracts/utils/cryptography/EIP712.sol";
-import "hardhat/console.sol";
 
-struct ValidityBound {
-    bytes32 functionParamStructHash;
-    uint256 validSince;
-    uint256 validBy;
-    uint256 nonce;
-}
+import "./IERC5453.sol";
 
-struct SingleEndorsementData {
-    address endorserAddress; // 32
-    bytes sig; // dynamic = 65
-}
-
-struct GeneralExtensonDataStruct {
-    bytes32 magicWord;
-    uint256 verson;
-    uint256 nonce;
-    uint256 validSince;
-    uint256 validBy;
-    bytes payload;
-}
-
-abstract contract AERC5453Endorsible is EIP712 {
+abstract contract AERC5453Endorsible is EIP712, IERC5453EndorsementCore, IERC5453EndorsementHelper {
     uint256 private threshold;
     uint256 private currentNonce = 0;
     bytes32 constant MAGIC_WORLD = keccak256("ENDORSEMENT"); // ASCII of "ENDORSED"
@@ -124,7 +104,7 @@ abstract contract AERC5453Endorsible is EIP712 {
         GeneralExtensonDataStruct memory _data = _decodeExtensionData(
             _extraData
         );
-        bytes32 finalDigest = _computeDigestWithBound(
+        bytes32 finalDigest = _computeValidityDigest(
             _functionParamStructHash,
             _data.validSince,
             _data.validBy,
@@ -158,7 +138,7 @@ abstract contract AERC5453Endorsible is EIP712 {
         _;
     }
 
-    function _computeDigestWithBound(
+    function _computeValidityDigest(
         bytes32 _functionParamStructHash,
         uint256 _validSince,
         uint256 _validBy,
@@ -180,7 +160,7 @@ abstract contract AERC5453Endorsible is EIP712 {
             );
     }
 
-    function _computeFunctionParamStructHash(
+    function _computeFunctionParamHash(
         string memory _functionName,
         bytes memory _functionParamPacked
     ) internal pure returns (bytes32) {
@@ -197,14 +177,14 @@ abstract contract AERC5453Endorsible is EIP712 {
         threshold = _threshold;
     }
 
-    function computeDigestWithBound(
+    function computeValidityDigest(
         bytes32 _functionParamStructHash,
         uint256 _validSince,
         uint256 _validBy,
         uint256 _nonce
-    ) external view returns (bytes32) {
+    ) external view override returns (bytes32) {
         return
-            _computeDigestWithBound(
+            _computeValidityDigest(
                 _functionParamStructHash,
                 _validSince,
                 _validBy,
@@ -212,58 +192,29 @@ abstract contract AERC5453Endorsible is EIP712 {
             );
     }
 
-    function computeFunctionParamStructHash(
+    function computeFunctionParamHash(
         string memory _functionName,
         bytes memory _functionParamPacked
-    ) external pure returns (bytes32) {
+    ) external pure override returns (bytes32) {
         return
-            _computeFunctionParamStructHash(
+            _computeFunctionParamHash(
                 _functionName,
                 _functionParamPacked
             );
     }
 
-    function getCurrentNonce() external view returns (uint256) {
+    function getCurrentNonce(address addr) external view override returns (uint256) {
+        require(address(this) == addr, "AERC5453Endorsable: not self");
         return currentNonce;
     }
 
-    function encodeExtensionData(
-        GeneralExtensonDataStruct memory generalExtensonDataStruct
-    ) external pure returns (bytes memory) {
-        return abi.encode(generalExtensonDataStruct);
-    }
-
-    function decodeExtensionData(
-        bytes memory extensionData
-    ) external pure returns (GeneralExtensonDataStruct memory) {
-        return _decodeExtensionData(extensionData);
-    }
-
-    function computeGeneralExtensonDataStruct(
-        uint256 verson,
-        uint256 nonce,
-        uint256 validSince,
-        uint256 validBy,
-        bytes calldata payload
-    ) external pure returns (GeneralExtensonDataStruct memory) {
-        return
-            GeneralExtensonDataStruct(
-                MAGIC_WORLD,
-                verson,
-                nonce,
-                validSince,
-                validBy,
-                payload
-            );
-    }
-
-    function computeGeneralExtensionDataStructForSingleEndorsementData(
+    function computeExtensionDataTypeA(
         uint256 nonce,
         uint256 validSince,
         uint256 validBy,
         address endorserAddress,
         bytes calldata sig
-    ) external pure returns (bytes memory) {
+    ) external pure override returns (bytes memory) {
         return
             abi.encode(
                 GeneralExtensonDataStruct(
@@ -277,13 +228,13 @@ abstract contract AERC5453Endorsible is EIP712 {
             );
     }
 
-    function computeGeneralExtensionDataStructForMultipleEndorsementData(
+    function computeExtensionDataTypeB(
         uint256 nonce,
         uint256 validSince,
         uint256 validBy,
         address[] calldata endorserAddress,
         bytes[] calldata sigs
-    ) external pure returns (bytes memory) {
+    ) external pure override returns (bytes memory) {
         require(endorserAddress.length == sigs.length);
         SingleEndorsementData[]
             memory endorsements = new SingleEndorsementData[](

@@ -1,7 +1,6 @@
-import { loadFixture, mine } from "@nomicfoundation/hardhat-network-helpers";
+import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
 import { expect } from "chai";
 import { ethers } from "hardhat";
-import { erc721 } from "../typechain-types/@openzeppelin/contracts/token";
 
 describe("ThresholdMultiSigForwarder", function () {
 
@@ -25,13 +24,13 @@ describe("ThresholdMultiSigForwarder", function () {
             "address", "uint256", "uint256", "bytes32"], [
             dest, value, gasLimit, ethers.utils.keccak256(calldata)]);
 
-        const functionParamStructHash = await thresholdMultiSigForwarder.computeFunctionParamStructHash(
+        const functionParamStructHash = await thresholdMultiSigForwarder.computeFunctionParamHash(
             functionName,
             functionParamPacked
         );
-        currentNonce = currentNonce || await (await thresholdMultiSigForwarder.getCurrentNonce()).toNumber();
+        currentNonce = currentNonce || await (await thresholdMultiSigForwarder.getCurrentNonce(thresholdMultiSigForwarder.address)).toNumber();
         const latestBlock = await ethers.provider.getBlock("latest");
-        const finalDigest = await thresholdMultiSigForwarder.computeDigestWithBound(
+        const finalDigest = await thresholdMultiSigForwarder.computeValidityDigest(
             functionParamStructHash,
             latestBlock.number,
             latestBlock.number +
@@ -46,7 +45,7 @@ describe("ThresholdMultiSigForwarder", function () {
             sigPackeds.push(sigPacked);
         }
 
-        const generalExtensionDataStruct = await thresholdMultiSigForwarder.computeGeneralExtensionDataStructForMultipleEndorsementData(
+        const generalExtensionDataStruct = await thresholdMultiSigForwarder.computeExtensionDataTypeB(
             currentNonce,
             validSince,
             validBy,

@@ -26,13 +26,13 @@ describe("EndorsibleERC721", function () {
         const functionName = "function mint(address _to,uint256 _tokenId)";
         const functionParamPacked = ethers.utils.defaultAbiCoder.encode(["address", "uint256"], [recipientAddress, tokenId]);
 
-        const functionParamStructHash = await endorsableERC721.computeFunctionParamStructHash(
+        const functionParamStructHash = await endorsableERC721.computeFunctionParamHash(
             functionName,
             functionParamPacked
         );
-        currentNonce = currentNonce || await (await endorsableERC721.getCurrentNonce()).toNumber();
+        currentNonce = currentNonce || await (await endorsableERC721.getCurrentNonce(endorsableERC721.address)).toNumber();
         const latestBlock = await ethers.provider.getBlock("latest");
-        const finalDigest = await endorsableERC721.computeDigestWithBound(
+        const finalDigest = await endorsableERC721.computeValidityDigest(
             functionParamStructHash,
             latestBlock.number,
             latestBlock.number +
@@ -42,7 +42,7 @@ describe("EndorsibleERC721", function () {
         validBy = validBy || latestBlock.number + numOfBlocksBeforeDeadline;
         const signature = testSigner.signDigest(finalDigest);
         const sigPacked = ethers.utils.joinSignature(signature);
-        const generalExtensionDataStruct = await endorsableERC721.computeGeneralExtensionDataStructForSingleEndorsementData(
+        const generalExtensionDataStruct = await endorsableERC721.computeExtensionDataTypeA(
             currentNonce,
             validSince,
             validBy,
@@ -141,7 +141,8 @@ describe("EndorsibleERC721", function () {
             const { endorsableERC721, mintSender } = await loadFixture(deployFixture);
             expect(await endorsableERC721.balanceOf(targetRecipient.address)).to.equal(0);
 
-            const currentNonce = await (await endorsableERC721.getCurrentNonce()).toNumber();
+            const currentNonce = await (await endorsableERC721.getCurrentNonce(
+                endorsableERC721.address)).toNumber();
             const extensionData = await computeExtensionData(targetRecipient.address, targetTokenId, { currentNonce: currentNonce + 1 });
             await expect(endorsableERC721.connect(mintSender).mint(targetRecipient.address, targetTokenId, extensionData))
                 .to.be.rejectedWith("Nonce not matched");

@@ -34,7 +34,7 @@ contract ThresholdMultiSigForwarder is AERC5453Endorsible {
     )
         external
         onlyEndorsed(
-            _computeFunctionParamStructHash(
+            _computeFunctionParamHash(
                 "function forward(address _dest,uint256 _value,uint256 _gasLimit,bytes calldata _calldata)",
                 abi.encode(_dest, _value, _gasLimit, keccak256(_calldata))
             ),

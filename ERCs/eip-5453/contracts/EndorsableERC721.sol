@@ -28,7 +28,7 @@ contract EndorsableERC721 is ERC721, AERC5453Endorsible {
     )
         external
         onlyEndorsed(
-            _computeFunctionParamStructHash(
+            _computeFunctionParamHash(
                 "function mint(address _to,uint256 _tokenId)",
                 abi.encode(_to, _tokenId)
             ),
