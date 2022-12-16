@@ -3,6 +3,7 @@
   "version": "0.1.0-1",
   "description": "An open source repository for smart contract reference implementations of ERCs.",
   "scripts": {
+    "build:interfaces": "solcjs interfaces/*.sol  --abi -o dist/abi/",
     "release": "release-it"
   },
   "repository": {
@@ -27,6 +28,7 @@
   "devDependencies": {
     "bump": "^0.2.5",
     "eth-cli": "^2.0.2",
-    "release-it": "^15.5.1"
+    "release-it": "^15.5.1",
+    "solc": "^0.8.17"
   }
 }
