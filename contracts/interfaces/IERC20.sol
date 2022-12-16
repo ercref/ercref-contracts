@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: CC0-1.0 or MIT
 pragma solidity ^0.8.9;
 
 // Minimal interface to ERC20 token.

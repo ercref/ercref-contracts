@@ -1,6 +1,7 @@
+// SPDX-License-Identifier: CC0-1.0 or MIT
 pragma solidity ^0.8.9;
 
-interface ERC1363PayableToken /* is ERC20, ERC165 */ {
+interface IERC1363PayableToken /* is ERC20, ERC165 */ {
   /*
    * Note: the ERC-165 identifier for this interface is 0xb0202a11.
    * 0xb0202a11 ===
@@ -72,7 +73,7 @@ interface ERC1363PayableToken /* is ERC20, ERC165 */ {
  * @dev Interface for any contract that wants to support `transferAndCall` or `transferFromAndCall`
  *  from ERC1363 token contracts.
  */
-interface ERC1363Receiver {
+interface IERC1363Receiver {
   /*
    * Note: the ERC-165 identifier for this interface is 0x88a7ca5c.
    * 0x88a7ca5c === bytes4(keccak256("onTransferReceived(address,address,uint256,bytes)"))

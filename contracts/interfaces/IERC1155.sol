@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: CC0-1.0 or MIT
 pragma solidity ^0.8.9;
 
 /**
@@ -5,7 +6,7 @@ pragma solidity ^0.8.9;
     @dev See https://eips.ethereum.org/EIPS/eip-1155
     Note: The ERC-165 identifier for this interface is 0xd9b67a26.
  */
-interface ERC1155Token /* is ERC165 */ {
+interface IERC1155Token /* is ERC165 */ {
     /**
         @dev Either `TransferSingle` or `TransferBatch` MUST emit when tokens are transferred, including zero value transfers as well as minting or burning (see "Safe Transfer Rules" section of the standard).
         The `_operator` argument MUST be the address of an account/contract that is approved to make the transfer (SHOULD be msg.sender).
@@ -112,7 +113,7 @@ interface ERC1155Token /* is ERC165 */ {
 /**
     Note: The ERC-165 identifier for this interface is 0x4e2312e0.
 */
-interface ERC1155TokenReceiver {
+interface IERC1155TokenReceiver {
     /**
         @notice Handle the receipt of a single ERC1155 token type.
         @dev An ERC1155-compliant smart contract MUST call this function on the token recipient contract, at the end of a `safeTransferFrom` after the balance has been updated.
