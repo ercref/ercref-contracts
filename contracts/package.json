@@ -26,6 +26,7 @@
   },
   "devDependencies": {
     "bump": "^0.2.5",
+    "eth-cli": "^2.0.2",
     "release-it": "^15.5.1"
   }
 }

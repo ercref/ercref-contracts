@@ -1,4 +1,4 @@
-pragma solidity >=0.7.0 <0.9.0;
+pragma solidity ^0.8.9;
 
 // The EIP-165 identifier of this interface is 0xf14fcbc8
 interface IERC5732CommitCore {

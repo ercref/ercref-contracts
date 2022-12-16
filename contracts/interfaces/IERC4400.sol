@@ -1,4 +1,4 @@
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.9;
 
 /// @title EIP-721 Consumer Role extension
 ///  Note: the EIP-165 identifier for this interface is 0x953c8dfa

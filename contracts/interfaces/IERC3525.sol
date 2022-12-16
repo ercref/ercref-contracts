@@ -1,4 +1,4 @@
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.9;
 
 /**
  * @title EIP-3525 Semi-Fungible Token Standard

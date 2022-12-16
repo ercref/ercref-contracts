@@ -1,4 +1,4 @@
-pragma solidity ^0.7.0 || ^0.8.0;
+pragma solidity ^0.8.9;
 
 
 interface IERC3156FlashBorrower {
