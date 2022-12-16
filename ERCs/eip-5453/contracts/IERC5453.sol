@@ -15,13 +15,13 @@ struct SingleEndorsementData {
     bytes sig; // dynamic = 65
 }
 
-struct GeneralExtensonDataStruct {
-    bytes32 magicWord;
-    uint256 verson;
+struct GeneralExtensionDataStruct {
+    bytes32 erc5453MagicWord;
+    uint256 erc5453Type;
     uint256 nonce;
     uint256 validSince;
     uint256 validBy;
-    bytes payload;
+    bytes endorsementPayload;
 }
 
 interface IERC5453EndorsementCore {

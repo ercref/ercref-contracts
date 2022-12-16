@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 // Author: Zainan Victor Zhou <zzn-ercref@zzn.im>
 pragma solidity ^0.8.9;
-import "hardhat/console.sol";
 
 import "./AERC5453.sol";
 
