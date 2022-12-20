@@ -1,4 +1,5 @@
-pragma solidity >=0.8.0;
+// SPDX-License-Identifier: CC0-1.0 or MIT
+pragma solidity ^0.8.9;
 
 interface IERC462TokenizedVaults {
     event Deposit(address indexed caller, address indexed owner, uint256 assets, uint256 shares);

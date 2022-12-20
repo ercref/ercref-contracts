@@ -1,4 +1,5 @@
-pragma solidity ^0.6.0;
+// SPDX-License-Identifier: CC0-1.0 or MIT
+pragma solidity ^0.8.9;
 
 ///
 /// @dev Interface for the NFT Royalty Standard

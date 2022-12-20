@@ -1,5 +1,5 @@
-// SPDX-License-Identifier: CC0-1.0
-pragma solidity ^0.8.0;
+// SPDX-License-Identifier: CC0-1.0 or MIT
+pragma solidity ^0.8.9;
 
 interface IERC5192SoulboundNFT {
   /// @notice Emitted when the locking status is changed to locked.
