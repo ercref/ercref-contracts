@@ -55,13 +55,9 @@ describe("ProposalExecutor", function () {
                         calldatas,
                         []);
                 let txCreateWaited = await txCreate.wait();
-                console.log(`Creation TX gas`, txCreateWaited.gasUsed.toString());
-                console.log(`Gas per mint`, parseInt(txCreateWaited.gasUsed.toString()) / numOfMint);
                 expect(await erc721.balanceOf(owner.address)).to.equal(0);
                 let txExecute = await contract.connect(owner).executeProposal(0, []);
                 let txExecuteWaited = await txExecute.wait();
-                console.log(`Execution TX gas`, txExecuteWaited.gasUsed.toString());
-                console.log(`Gas per mint`, parseInt(txExecuteWaited.gasUsed.toString()) / numOfMint);
                 expect(await erc721.balanceOf(owner.address)).to.equal(numOfMint);
             });
         }
@@ -70,7 +66,46 @@ describe("ProposalExecutor", function () {
         const gasBenchmarkReports:any[] = [];
         this.afterAll(function () {
             console.log(`Gas Benchmark Report`);
-            console.log(gasBenchmarkReports);
+            console.table(gasBenchmarkReports);
+        });
+
+        it(`Should work for sending 200 mint transactions for same address`, async function() {
+            const { erc721, owner } = await loadFixture(deployFixture);
+            const numOfMint = 200;
+            let totalGasUsed = 0;
+            const recipient = hexlify(ethers.utils.randomBytes(20));
+            for (let i = 0 ; i < numOfMint; i++) {
+                const tx = await erc721.connect(owner).mint(recipient, i);
+                const txWaited = await tx.wait();
+                totalGasUsed += parseInt(txWaited.gasUsed.toString());
+            }
+            gasBenchmarkReports.push({
+                title: `Mint 200 tokens`,
+                via: "Call mint 200 times",
+                tag: "Same Recipient",
+                TotalGasUsed: totalGasUsed,
+                GasUsedPerMint: totalGasUsed / numOfMint,
+            });
+        });
+
+        it(`Should work for sending 200 mint transactions for same address`, async function() {
+            const { erc721, owner } = await loadFixture(deployFixture);
+            const numOfMint = 200;
+            let totalGasUsed = 0
+            for (let i = 0 ; i < numOfMint; i++) {
+                const tx = await erc721.connect(owner).mint(
+                    hexlify(ethers.utils.randomBytes(20)),
+                    i);
+                const txWaited = await tx.wait();
+                totalGasUsed += parseInt(txWaited.gasUsed.toString());
+            }
+            gasBenchmarkReports.push({
+                title: `Mint 200 tokens`,
+                via: "Call mint 200 times",
+                tag: "Random Recipients",
+                TotalGasUsed: totalGasUsed,
+                GasUsedPerMint: totalGasUsed / numOfMint,
+            });
         });
 
         it(`Should work for a forwarding case for 200 mints same address`, async function () {
@@ -90,13 +125,12 @@ describe("ProposalExecutor", function () {
                     calldatas);
             let txForwardWaited = await txForward.wait();
             gasBenchmarkReports.push({
-                title: `Mint 200 tokens using forwarder`,
+                title: `Mint 200 tokens`,
+                via: "Call Forwarder to bundle mint once",
+                tag: "Same Recipient",
                 TotalGasUsed: parseInt(txForwardWaited.gasUsed.toString()),
-                GasUsedPerMint: parseInt(txForwardWaited.gasUsed.toString()),
+                GasUsedPerMint: parseInt(txForwardWaited.gasUsed.toString()) / numOfMint,
             });
-            console.log(`txForwardWaited TX gas`, txForwardWaited.gasUsed.toString());
-
-            console.log(`Gas per mint for same addresses via forwarder`, parseInt(txForwardWaited.gasUsed.toString()) / numOfMint);
             expect(await erc721.balanceOf(owner.address)).to.equal(numOfMint);
         });
 
@@ -117,10 +151,13 @@ describe("ProposalExecutor", function () {
                     Array(numOfMint).fill(0),
                     calldatas);
             let txForwardWaited = await txForward.wait();
-
-            console.log(`txForwardWaited TX gas`, txForwardWaited.gasUsed.toString());
-
-            console.log(`Gas per mint for different addresses via forwarder`, parseInt(txForwardWaited.gasUsed.toString()) / numOfMint);
+            gasBenchmarkReports.push({
+                title: `Mint 200 tokens`,
+                via: "Call Forwarder to bundle mint once",
+                tag: "Random Recipients",
+                TotalGasUsed: parseInt(txForwardWaited.gasUsed.toString()),
+                GasUsedPerMint: parseInt(txForwardWaited.gasUsed.toString()) / numOfMint,
+            });
         });
 
         it(`Should work for erc721 batchMint with same addresses`, async function () {
@@ -135,8 +172,13 @@ describe("ProposalExecutor", function () {
             }
             const tx = await erc721.connect(owner).batchMint(addresses, tokenIds);
             const txWaited = await tx.wait();
-            console.log(`batchMint TX gas`, txWaited.gasUsed.toString());
-            console.log(`At ${numOfMint} Gas per mint`, parseInt(txWaited.gasUsed.toString()) / numOfMint);
+            gasBenchmarkReports.push({
+                title: `Mint 200 tokens`,
+                via: "Call batchMint once",
+                tag: "Same Recipient",
+                TotalGasUsed: parseInt(txWaited.gasUsed.toString()),
+                GasUsedPerMint: parseInt(txWaited.gasUsed.toString()) / numOfMint,
+            });
         })
 
         it(`Should work for erc721 batchMint with different addresses`, async function () {
@@ -151,8 +193,13 @@ describe("ProposalExecutor", function () {
             }
             const tx = await erc721.connect(owner).batchMint(addresses, tokenIds);
             const txWaited = await tx.wait();
-            console.log(`batchMint TX gas`, txWaited.gasUsed.toString());
-            console.log(`At ${numOfMint} Gas per mint`, parseInt(txWaited.gasUsed.toString()) / numOfMint);
+            gasBenchmarkReports.push({
+                title: `Mint 200 tokens`,
+                via: "Call batchMint once",
+                tag: "Random Recipients",
+                TotalGasUsed: parseInt(txWaited.gasUsed.toString()),
+                GasUsedPerMint: parseInt(txWaited.gasUsed.toString()) / numOfMint,
+            });
         });
 
 
@@ -168,8 +215,13 @@ describe("ProposalExecutor", function () {
             }
             const tx = await erc721.connect(owner).batchSafeMint(addresses, tokenIds);
             const txWaited = await tx.wait();
-            console.log(`batchSafeMint TX gas`, txWaited.gasUsed.toString());
-            console.log(`At ${numOfMint} Gas per mint`, parseInt(txWaited.gasUsed.toString()) / numOfMint);
+            gasBenchmarkReports.push({
+                title: `Mint 200 tokens`,
+                via: "Call batchSafeMint once",
+                tag: "Same Recipient",
+                TotalGasUsed: parseInt(txWaited.gasUsed.toString()),
+                GasUsedPerMint: parseInt(txWaited.gasUsed.toString()) / numOfMint,
+            });
         });
 
         it(`Should work for erc721 batchSafeMint with different addresses`, async function () {
@@ -184,8 +236,13 @@ describe("ProposalExecutor", function () {
             }
             const tx = await erc721.connect(owner).batchSafeMint(addresses, tokenIds);
             const txWaited = await tx.wait();
-            console.log(`batchSafeMint TX gas`, txWaited.gasUsed.toString());
-            console.log(`At ${numOfMint} the Gas per mint`, parseInt(txWaited.gasUsed.toString()) / numOfMint);
+            gasBenchmarkReports.push({
+                title: `Mint 200 tokens`,
+                via: "Call batchSafeMint once",
+                tag: "Random Recipients",
+                TotalGasUsed: parseInt(txWaited.gasUsed.toString()),
+                GasUsedPerMint: parseInt(txWaited.gasUsed.toString()) / numOfMint,
+            });
         });
     });
 });
