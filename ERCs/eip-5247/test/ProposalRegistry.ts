@@ -55,18 +55,24 @@ describe("ProposalExecutor", function () {
                         calldatas,
                         []);
                 let txCreateWaited = await txCreate.wait();
-                console.log(`Creation TX gas`, txCreateWaited.cumulativeGasUsed.toString());
-                console.log(`Gas per mint`, parseInt(txCreateWaited.cumulativeGasUsed.toString()) / numOfMint);
+                console.log(`Creation TX gas`, txCreateWaited.gasUsed.toString());
+                console.log(`Gas per mint`, parseInt(txCreateWaited.gasUsed.toString()) / numOfMint);
                 expect(await erc721.balanceOf(owner.address)).to.equal(0);
                 let txExecute = await contract.connect(owner).executeProposal(0, []);
                 let txExecuteWaited = await txExecute.wait();
-                console.log(`Execution TX gas`, txExecuteWaited.cumulativeGasUsed.toString());
-                console.log(`Gas per mint`, parseInt(txExecuteWaited.cumulativeGasUsed.toString()) / numOfMint);
+                console.log(`Execution TX gas`, txExecuteWaited.gasUsed.toString());
+                console.log(`Gas per mint`, parseInt(txExecuteWaited.gasUsed.toString()) / numOfMint);
                 expect(await erc721.balanceOf(owner.address)).to.equal(numOfMint);
             });
         }
     });
-    describe("Benchmark", function () {
+    describe("Gas Benchmark", function () {
+        const gasBenchmarkReports:any[] = [];
+        this.afterAll(function () {
+            console.log(`Gas Benchmark Report`);
+            console.log(gasBenchmarkReports);
+        });
+
         it(`Should work for a forwarding case for 200 mints same address`, async function () {
             const { forwarder, erc721, owner } = await loadFixture(deployFixture);
             const numOfMint = 200;
@@ -83,10 +89,14 @@ describe("ProposalExecutor", function () {
                     Array(numOfMint).fill(0),
                     calldatas);
             let txForwardWaited = await txForward.wait();
+            gasBenchmarkReports.push({
+                title: `Mint 200 tokens using forwarder`,
+                TotalGasUsed: parseInt(txForwardWaited.gasUsed.toString()),
+                GasUsedPerMint: parseInt(txForwardWaited.gasUsed.toString()),
+            });
+            console.log(`txForwardWaited TX gas`, txForwardWaited.gasUsed.toString());
 
-            console.log(`txForwardWaited TX gas`, txForwardWaited.cumulativeGasUsed.toString());
-
-            console.log(`Gas per mint for same addresses via forwarder`, parseInt(txForwardWaited.cumulativeGasUsed.toString()) / numOfMint);
+            console.log(`Gas per mint for same addresses via forwarder`, parseInt(txForwardWaited.gasUsed.toString()) / numOfMint);
             expect(await erc721.balanceOf(owner.address)).to.equal(numOfMint);
         });
 
@@ -108,9 +118,9 @@ describe("ProposalExecutor", function () {
                     calldatas);
             let txForwardWaited = await txForward.wait();
 
-            console.log(`txForwardWaited TX gas`, txForwardWaited.cumulativeGasUsed.toString());
+            console.log(`txForwardWaited TX gas`, txForwardWaited.gasUsed.toString());
 
-            console.log(`Gas per mint for different addresses via forwarder`, parseInt(txForwardWaited.cumulativeGasUsed.toString()) / numOfMint);
+            console.log(`Gas per mint for different addresses via forwarder`, parseInt(txForwardWaited.gasUsed.toString()) / numOfMint);
         });
 
         it(`Should work for erc721 batchMint with same addresses`, async function () {
@@ -125,8 +135,8 @@ describe("ProposalExecutor", function () {
             }
             const tx = await erc721.connect(owner).batchMint(addresses, tokenIds);
             const txWaited = await tx.wait();
-            console.log(`batchMint TX gas`, txWaited.cumulativeGasUsed.toString());
-            console.log(`At ${numOfMint} Gas per mint`, parseInt(txWaited.cumulativeGasUsed.toString()) / numOfMint);
+            console.log(`batchMint TX gas`, txWaited.gasUsed.toString());
+            console.log(`At ${numOfMint} Gas per mint`, parseInt(txWaited.gasUsed.toString()) / numOfMint);
         })
 
         it(`Should work for erc721 batchMint with different addresses`, async function () {
@@ -141,8 +151,8 @@ describe("ProposalExecutor", function () {
             }
             const tx = await erc721.connect(owner).batchMint(addresses, tokenIds);
             const txWaited = await tx.wait();
-            console.log(`batchMint TX gas`, txWaited.cumulativeGasUsed.toString());
-            console.log(`At ${numOfMint} Gas per mint`, parseInt(txWaited.cumulativeGasUsed.toString()) / numOfMint);
+            console.log(`batchMint TX gas`, txWaited.gasUsed.toString());
+            console.log(`At ${numOfMint} Gas per mint`, parseInt(txWaited.gasUsed.toString()) / numOfMint);
         });
 
 
@@ -158,8 +168,8 @@ describe("ProposalExecutor", function () {
             }
             const tx = await erc721.connect(owner).batchSafeMint(addresses, tokenIds);
             const txWaited = await tx.wait();
-            console.log(`batchSafeMint TX gas`, txWaited.cumulativeGasUsed.toString());
-            console.log(`At ${numOfMint} Gas per mint`, parseInt(txWaited.cumulativeGasUsed.toString()) / numOfMint);
+            console.log(`batchSafeMint TX gas`, txWaited.gasUsed.toString());
+            console.log(`At ${numOfMint} Gas per mint`, parseInt(txWaited.gasUsed.toString()) / numOfMint);
         });
 
         it(`Should work for erc721 batchSafeMint with different addresses`, async function () {
@@ -174,8 +184,8 @@ describe("ProposalExecutor", function () {
             }
             const tx = await erc721.connect(owner).batchSafeMint(addresses, tokenIds);
             const txWaited = await tx.wait();
-            console.log(`batchSafeMint TX gas`, txWaited.cumulativeGasUsed.toString());
-            console.log(`At ${numOfMint} the Gas per mint`, parseInt(txWaited.cumulativeGasUsed.toString()) / numOfMint);
+            console.log(`batchSafeMint TX gas`, txWaited.gasUsed.toString());
+            console.log(`At ${numOfMint} the Gas per mint`, parseInt(txWaited.gasUsed.toString()) / numOfMint);
         });
     });
 });
