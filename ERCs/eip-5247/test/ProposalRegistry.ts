@@ -73,12 +73,19 @@ describe("ProposalExecutor", function () {
             const { erc721, owner } = await loadFixture(deployFixture);
             const numOfMint = 200;
             let totalGasUsed = 0;
-            const recipient = hexlify(ethers.utils.randomBytes(20));
+            const recipient = ethers.utils.hexZeroPad(ethers.utils.hexlify(1), 20);
+            const localTable:any[] = [];
             for (let i = 0 ; i < numOfMint; i++) {
                 const tx = await erc721.connect(owner).mint(recipient, i);
                 const txWaited = await tx.wait();
                 totalGasUsed += parseInt(txWaited.gasUsed.toString());
+                localTable.push({
+                    index: i,
+                    recipient,
+                    gasUsed: parseInt(txWaited.gasUsed.toString()),
+                });
             }
+            console.table(localTable);
             gasBenchmarkReports.push({
                 title: `Mint 200 tokens`,
                 via: "Call mint 200 times",
@@ -88,17 +95,25 @@ describe("ProposalExecutor", function () {
             });
         });
 
-        it(`Should work for sending 200 mint transactions for same address`, async function() {
+        it(`Should work for sending 200 mint transactions for different addresses`, async function() {
             const { erc721, owner } = await loadFixture(deployFixture);
             const numOfMint = 200;
-            let totalGasUsed = 0
+            let totalGasUsed = 0;
+            const localTable:any[] = [];
             for (let i = 0 ; i < numOfMint; i++) {
+                const recipient = ethers.utils.hexZeroPad(ethers.utils.hexlify(1+i), 20);
                 const tx = await erc721.connect(owner).mint(
-                    hexlify(ethers.utils.randomBytes(20)),
+                    recipient,
                     i);
                 const txWaited = await tx.wait();
                 totalGasUsed += parseInt(txWaited.gasUsed.toString());
+                localTable.push({
+                    index: i,
+                    recipient,
+                    gasUsed: parseInt(txWaited.gasUsed.toString()),
+                });
             }
+            console.table(localTable);
             gasBenchmarkReports.push({
                 title: `Mint 200 tokens`,
                 via: "Call mint 200 times",
@@ -134,7 +149,7 @@ describe("ProposalExecutor", function () {
             expect(await erc721.balanceOf(owner.address)).to.equal(numOfMint);
         });
 
-        it(`Should work for a forwarding case for 200 mints different address`, async function () {
+        it(`Should work for a forwarding case for 200 mints different addresses`, async function () {
             const { forwarder, erc721, owner } = await loadFixture(deployFixture);
             const numOfMint = 200;
             const calldatas = [];
@@ -160,7 +175,7 @@ describe("ProposalExecutor", function () {
             });
         });
 
-        it(`Should work for erc721 batchMint with same addresses`, async function () {
+        it(`Should work for erc721 batchMint with same address`, async function () {
             const { erc721, owner } = await loadFixture(deployFixture);
             const numOfMint = 200;
             const tokenIds = [];
@@ -203,7 +218,7 @@ describe("ProposalExecutor", function () {
         });
 
 
-        it(`Should work for erc721 batchSafeMint with same addresses`, async function () {
+        it(`Should work for erc721 batchSafeMint with same address`, async function () {
             const { erc721, owner } = await loadFixture(deployFixture);
             const numOfMint = 400;
             const tokenIds = [];
