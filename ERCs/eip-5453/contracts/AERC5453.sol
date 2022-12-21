@@ -12,7 +12,7 @@ abstract contract AERC5453Endorsible is EIP712,
     IERC5453EndorsementCore, IERC5453EndorsementDigest, IERC5453EndorsementDataTypeA, IERC5453EndorsementDataTypeB {
     uint256 private threshold;
     uint256 private currentNonce = 0;
-    bytes32 constant MAGIC_WORLD = keccak256("ERC5453-ENDORSEMENT"); // ASCII of "ENDORSED"
+    bytes32 constant MAGIC_WORD = keccak256("ERC5453-ENDORSEMENT"); // ASCII of "ENDORSED"
     uint256 constant ERC5453_TYPE_A = 1;
     uint256 constant ERC5453_TYPE_B = 2;
 
@@ -44,7 +44,7 @@ abstract contract AERC5453Endorsible is EIP712,
         GeneralExtensionDataStruct memory data
     ) internal virtual returns (address[] memory endorsers) {
         require(
-            data.erc5453MagicWord == MAGIC_WORLD,
+            data.erc5453MagicWord == MAGIC_WORD,
             "AERC5453Endorsible: MagicWord not matched"
         );
         require(
@@ -228,7 +228,7 @@ abstract contract AERC5453Endorsible is EIP712,
         return
             abi.encode(
                 GeneralExtensionDataStruct(
-                    MAGIC_WORLD,
+                    MAGIC_WORD,
                     ERC5453_TYPE_A,
                     nonce,
                     validSince,
@@ -259,7 +259,7 @@ abstract contract AERC5453Endorsible is EIP712,
         return
             abi.encode(
                 GeneralExtensionDataStruct(
-                    MAGIC_WORLD,
+                    MAGIC_WORD,
                     ERC5453_TYPE_B,
                     nonce,
                     validSince,
