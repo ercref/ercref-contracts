@@ -228,7 +228,7 @@ abstract contract AERC5453Endorsible is EIP712,
         return
             abi.encode(
                 GeneralExtensionDataStruct(
-                    MAGIC_WORLD,
+                    MAGIC_WORD,
                     ERC5453_TYPE_A,
                     nonce,
                     validSince,
