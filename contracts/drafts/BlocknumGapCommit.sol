@@ -5,6 +5,7 @@
 pragma solidity ^0.8.17;
 
 import "./IERC5732.sol";
+import "./utils/AERCRef.sol";
 import "@openzeppelin/contracts/utils/introspection/ERC165.sol";
 
 /// @dev Implementation of the {IERC_COMMIT} interface for the Mint use case.
@@ -16,7 +17,7 @@ import "@openzeppelin/contracts/utils/introspection/ERC165.sol";
 /// Step2. After sometime, that same user calls the "mint" with the actual
 ///     `tokenId` to mint the token, which reveals the token.
 ///     The mint request also contains the a `secret_sault` in its ExtraData.
-abstract contract BlocknumGapCommit is IERC_COMMIT_CORE, IERC_COMMIT_GENERAL, ERC165 {
+abstract contract BlocknumGapCommit is AERCRef, IERC_COMMIT_CORE, IERC_COMMIT_GENERAL, ERC165 {
     mapping(address => bytes32) private commitments;
     mapping(address => uint256) private commitTimes;
 

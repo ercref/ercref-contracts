@@ -41,7 +41,9 @@ contract ERC5679Ext721RefImpl is ERC5679Ext721, ERC721 {
         view
         override(ERC5679Ext721, ERC721)
         returns (bool)
-    {}
+    {
+        return super.supportsInterface(interfaceId);
+    }
 
 
 }
