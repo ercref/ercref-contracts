@@ -10,9 +10,16 @@ describe("EndorsibleERC721", function () {
         const EndorsableERC721 = await ethers.getContractFactory("EndorsableERC721");
         const endorsableERC721 = await EndorsableERC721.deploy();
         await endorsableERC721.deployed();
+
         const testSignerAddress = ethers.utils.computeAddress(testSigner.publicKey);
         await endorsableERC721.connect(owner).addOwner(testSignerAddress);
-        return { endorsableERC721, owner, mintSender, recipient, testSigner, testSignerAddress };
+
+
+        const ERC721ForTesting = await ethers.getContractFactory("ERC721ForTesting");
+        const erc721ForTesting = await ERC721ForTesting.deploy();
+        await endorsableERC721.deployed();
+
+        return { endorsableERC721, erc721ForTesting, owner, mintSender, recipient, testSigner, testSignerAddress };
     }
 
     async function computeExtensionData(
@@ -147,6 +154,32 @@ describe("EndorsibleERC721", function () {
             await expect(endorsableERC721.connect(mintSender).mint(targetRecipient.address, targetTokenId, extensionData))
                 .to.be.rejectedWith("Nonce not matched");
             expect(await endorsableERC721.balanceOf(targetRecipient.address)).to.equal(0);
+        });
+    });
+
+    describe("Gas Benchmark", function () {
+        let gasBenchmarkReports:any[] = [];
+        it("Minting 1 Single Token", async function () {
+            const { endorsableERC721, erc721ForTesting, mintSender, recipient } = await loadFixture(deployFixture);
+            const extensionData = await computeExtensionData(recipient.address, 0x01, {});
+            const tx1 = await endorsableERC721.connect(mintSender).mint(recipient.address, 1, extensionData);
+            const tx1Receipt = await tx1.wait();
+            gasBenchmarkReports.push({
+                title: "Mint 1 token",
+                tag: "EndorsableERC721",
+                gasUsed: tx1Receipt.gasUsed.toString(),
+            });
+
+            const tx2 = await erc721ForTesting.connect(mintSender).mint(recipient.address, 1);
+            const tx2Receipt = await tx2.wait();
+            gasBenchmarkReports.push({
+                title: "Mint 1 token",
+                tag: "ERC721ForTesting",
+                gasUsed: tx2Receipt.gasUsed.toString(),
+            });
+        });
+        this.afterAll(async function () {
+            console.table(gasBenchmarkReports);
         });
     });
 });
