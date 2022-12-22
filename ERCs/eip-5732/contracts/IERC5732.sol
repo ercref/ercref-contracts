@@ -4,11 +4,12 @@
 
 pragma solidity >=0.7.0 <0.9.0;
 
-/// The EIP-165 identifier of this interface is 0x4ba43d48
+/// The EIP-165 identifier of this interface is 0xf14fcbc8
 interface IERC_COMMIT_CORE {
     function commit(bytes32 _commitment) payable external;
 }
 
+/// The EIP-165 identifier of this interface is 0x67b2ec2c
 interface IERC_COMMIT_GENERAL {
     event Commit(
         uint256 indexed _time,
