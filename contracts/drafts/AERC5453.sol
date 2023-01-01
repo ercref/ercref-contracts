@@ -18,8 +18,8 @@ abstract contract AERC5453Endorsible is EIP712,
 
     constructor(
         string memory _name,
-        string memory _erc721Version
-    ) EIP712(_name, _erc721Version) {}
+        string memory _erc712Version
+    ) EIP712(_name, _erc712Version) {}
 
     function _validate(
         bytes32 msgDigest,
