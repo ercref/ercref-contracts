@@ -8,58 +8,19 @@ describe("EndorsibleERC721", function () {
     async function deployFixture() {
         // Contracts are deployed using the first signer/account by default
         const [owner, mintSender, recipient] = await ethers.getSigners();
-        const testSigner = new ethers.utils.SigningKey("0x0000000000000000000000000000000000000000000000000000000000000001");
         const testWallet:Wallet = new ethers.Wallet("0x0000000000000000000000000000000000000000000000000000000000000001");
         const EndorsableERC721 = await ethers.getContractFactory("EndorsableERC721");
         const endorsableERC721 = await EndorsableERC721.deploy();
         await endorsableERC721.deployed();
 
-        const testSignerAddress = ethers.utils.computeAddress(testSigner.publicKey);
-        await endorsableERC721.connect(owner).addOwner(testSignerAddress);
-
-
         const ERC721ForTesting = await ethers.getContractFactory("ERC721ForTesting");
         const erc721ForTesting = await ERC721ForTesting.deploy();
         await endorsableERC721.deployed();
 
-        return { endorsableERC721, erc721ForTesting, owner, mintSender, recipient, testSigner, testSignerAddress, testWallet };
+        await endorsableERC721.connect(owner).addOwner(testWallet.address);
+
+        return { endorsableERC721, erc721ForTesting, owner, mintSender, recipient, testWallet };
     }
-
-    async function computeExtensionData(
-        recipientAddress: any, tokenId: any, {
-            numOfBlocksBeforeDeadline = 20,
-            validSince = 0,
-            validBy = 0,
-            currentNonce = 0,
-        }) {
-        const { endorsableERC721, testSigner, testSignerAddress } = await loadFixture(deployFixture);
-        const functionName = "function mint(address _to,uint256 _tokenId)";
-        const functionParamPacked = ethers.utils.defaultAbiCoder.encode(["address", "uint256"], [recipientAddress, tokenId]);
-
-        const functionParamStructHash = await endorsableERC721.computeFunctionParamHash(
-            functionName,
-            functionParamPacked
-        );
-        currentNonce = currentNonce || await (await endorsableERC721.eip5453Nonce(endorsableERC721.address)).toNumber();
-        const latestBlock = await ethers.provider.getBlock("latest");
-        validSince = validSince || latestBlock.number;
-        validBy = validBy || latestBlock.number + numOfBlocksBeforeDeadline;
-        const finalDigest = await endorsableERC721.computeValidityDigest(
-            functionParamStructHash,
-            validSince,
-            validBy,
-            currentNonce);
-
-        const signature = testSigner.signDigest(finalDigest);
-        const sigPacked = ethers.utils.joinSignature(signature);
-        const generalExtensionDataStruct = await endorsableERC721.computeExtensionDataTypeA(
-            currentNonce,
-            validSince,
-            validBy,
-            testSignerAddress,
-            sigPacked);
-        return generalExtensionDataStruct;
-    };
 
     describe("Deployment", function () {
         it("Should be deployable", async function () {
@@ -72,22 +33,35 @@ describe("EndorsibleERC721", function () {
         });
 
         it("Should successfully mint if ONE signer have a valid endorsement", async function () {
-            const { endorsableERC721, mintSender, recipient } = await loadFixture(deployFixture);
+            const targetTokenId = 0x01;
+            const { endorsableERC721, mintSender, recipient, testWallet } = await loadFixture(deployFixture);
             expect(await endorsableERC721.balanceOf(recipient.address)).to.equal(0);
-            const extensionData = await computeExtensionData(recipient.address, 0x01, {});
-            await endorsableERC721.connect(mintSender).mint(recipient.address, 1, extensionData);
-            expect(await endorsableERC721.balanceOf(recipient.address)).to.equal(1);
+            const endorsement = await computeEndorsement(
+                endorsableERC721,
+                "function mint(address _to,uint256 _tokenId)",
+                ["address", "uint256"],
+                [recipient.address, ethers.utils.arrayify(0x01)],
+                testWallet, { }
+            );
+            await endorsableERC721.connect(mintSender).mint(recipient.address, targetTokenId, endorsement);
+            expect(await endorsableERC721.balanceOf(recipient.address)).to.equal(targetTokenId);
         });
 
         it("Should successfully mint if ANY signer have a valid endorsement", async function () {
-            const { endorsableERC721 } = await loadFixture(deployFixture);
+            const { endorsableERC721, testWallet } = await loadFixture(deployFixture);
             const signers = await ethers.getSigners();
             for (let i = 0; i < 5; i++) {
                 for (let j = 0; j < 5; j++) {
                     const randomRecipient = await ethers.Wallet.createRandom();
                     expect(await endorsableERC721.balanceOf(randomRecipient.address)).to.equal(0);
-                    const extensionData = await computeExtensionData(randomRecipient.address, i * 5 + j, {});
-                    await endorsableERC721.connect(signers[j]).mint(randomRecipient.address, i * 5 + j, extensionData);
+                    const endorsement = await computeEndorsement(
+                        endorsableERC721,
+                        "function mint(address _to,uint256 _tokenId)",
+                        ["address", "uint256"],
+                        [randomRecipient.address, ethers.utils.arrayify(i * 5 + j)],
+                        testWallet, { }
+                    );
+                    await endorsableERC721.connect(signers[j]).mint(randomRecipient.address, i * 5 + j, endorsement);
                     expect(await endorsableERC721.balanceOf(randomRecipient.address)).to.equal(1);
                 }
             }
@@ -98,16 +72,29 @@ describe("EndorsibleERC721", function () {
             const wroteTokenId = 0x02;
             const targetRecipient = await ethers.Wallet.createRandom();
             const wrongRecipient = await ethers.Wallet.createRandom();
-            const { endorsableERC721, mintSender } = await loadFixture(deployFixture);
+            const { endorsableERC721, mintSender, testWallet } = await loadFixture(deployFixture);
             expect(await endorsableERC721.balanceOf(targetRecipient.address)).to.equal(0);
 
             // Wrong TokenId
-            const extensionData1 = await computeExtensionData(targetRecipient.address, wroteTokenId, {});
-            await expect(endorsableERC721.connect(mintSender).mint(targetRecipient.address, targetTokenId, extensionData1)).to.be.rejectedWith("AERC5453Endorsible: invalid signature");
+            const endorsement1 = await computeEndorsement(
+                endorsableERC721,
+                "function mint(address _to,uint256 _tokenId)",
+                ["address", "uint256"],
+                [targetRecipient.address, ethers.utils.arrayify(wroteTokenId)],
+                testWallet, { }
+            );
+            await expect(endorsableERC721.connect(mintSender).mint(targetRecipient.address, targetTokenId, endorsement1))
+                .to.be.rejectedWith("AERC5453Endorsible: invalid signature");
 
             // Wrong Recipient
-            const extensionData2 = await computeExtensionData(wrongRecipient.address, targetTokenId, {});
-            await expect(endorsableERC721.connect(mintSender).mint(targetRecipient.address, targetTokenId, extensionData2)).to.be.rejectedWith("AERC5453Endorsible: invalid signature");
+            const endorsement2 = await computeEndorsement(
+                endorsableERC721,
+                "function mint(address _to,uint256 _tokenId)",
+                ["address", "uint256"],
+                [wrongRecipient.address, ethers.utils.arrayify(targetTokenId)],
+                testWallet, { }
+            );
+            await expect(endorsableERC721.connect(mintSender).mint(targetRecipient.address, targetTokenId, endorsement2)).to.be.rejectedWith("AERC5453Endorsible: invalid signature");
 
             expect(await endorsableERC721.balanceOf(targetRecipient.address)).to.equal(0);
         });
@@ -123,11 +110,18 @@ describe("EndorsibleERC721", function () {
 
             // blocknum is strictly less than validSince.
             const validSince = latestBlock.number + 2;
-            const extensionData = await computeExtensionData(targetRecipient.address, targetTokenId, {
-                validSince,
-                validBy: validSince + 10,
-            });
-            await expect(endorsableERC721.connect(mintSender).mint(targetRecipient.address, targetTokenId, extensionData))
+            const endorsement = await computeEndorsement(
+                endorsableERC721,
+                "function mint(address _to,uint256 _tokenId)",
+                ["address", "uint256"],
+                [targetRecipient.address, ethers.utils.arrayify(targetTokenId)],
+                testWallet, {
+                    validSince,
+                    validBy: validSince + 10,
+                }
+            );
+
+            await expect(endorsableERC721.connect(mintSender).mint(targetRecipient.address, targetTokenId, endorsement))
                 .to.be.rejectedWith("Not valid yet");
             expect(await endorsableERC721.balanceOf(targetRecipient.address)).to.equal(0);
         });
@@ -135,15 +129,20 @@ describe("EndorsibleERC721", function () {
         it("Should reject if signer have a endorsement with time expired", async function () {
             const targetTokenId = 0x01;
             const targetRecipient = await ethers.Wallet.createRandom();
-            const { endorsableERC721, mintSender } = await loadFixture(deployFixture);
+            const { endorsableERC721, mintSender, testWallet } = await loadFixture(deployFixture);
             expect(await endorsableERC721.balanceOf(targetRecipient.address)).to.equal(0);
 
-            const latestBlock = await ethers.provider.getBlock("latest");
             const numOfBlocksBeforeDeadline = 10;
-            const extensionData = await computeExtensionData(targetRecipient.address, targetTokenId, { numOfBlocksBeforeDeadline });
+            const endorsement = await computeEndorsement(
+                endorsableERC721,
+                "function mint(address _to,uint256 _tokenId)",
+                ["address", "uint256"],
+                [targetRecipient.address, ethers.utils.arrayify(targetTokenId)],
+                testWallet, { numOfBlocksBeforeDeadline }
+            );
 
             await mine(numOfBlocksBeforeDeadline + 1);
-            await expect(endorsableERC721.connect(mintSender).mint(targetRecipient.address, targetTokenId, extensionData))
+            await expect(endorsableERC721.connect(mintSender).mint(targetRecipient.address, targetTokenId, endorsement))
                 .to.be.rejectedWith("Expired");
             expect(await endorsableERC721.balanceOf(targetRecipient.address)).to.equal(0);
         });
@@ -151,13 +150,20 @@ describe("EndorsibleERC721", function () {
         it("Should reject if signer have a endorsement not matching nonce", async function () {
             const targetTokenId = 0x01;
             const targetRecipient = await ethers.Wallet.createRandom();
-            const { endorsableERC721, mintSender } = await loadFixture(deployFixture);
+            const { endorsableERC721, mintSender, testWallet } = await loadFixture(deployFixture);
             expect(await endorsableERC721.balanceOf(targetRecipient.address)).to.equal(0);
 
             const currentNonce = await (await endorsableERC721.eip5453Nonce(
                 endorsableERC721.address)).toNumber();
-            const extensionData = await computeExtensionData(targetRecipient.address, targetTokenId, { currentNonce: currentNonce + 1 });
-            await expect(endorsableERC721.connect(mintSender).mint(targetRecipient.address, targetTokenId, extensionData))
+            const endorsement = await computeEndorsement(
+                endorsableERC721,
+                "function mint(address _to,uint256 _tokenId)",
+                ["address", "uint256"],
+                [targetRecipient.address, ethers.utils.arrayify(targetTokenId)],
+                testWallet, { currentNonce: currentNonce + 1 }
+            );
+
+            await expect(endorsableERC721.connect(mintSender).mint(targetRecipient.address, targetTokenId, endorsement))
                 .to.be.rejectedWith("Nonce not matched");
             expect(await endorsableERC721.balanceOf(targetRecipient.address)).to.equal(0);
         });
@@ -166,9 +172,15 @@ describe("EndorsibleERC721", function () {
     describe("Gas Benchmark", function () {
         let gasBenchmarkReports:any[] = [];
         it("Minting 1 Single Token", async function () {
-            const { endorsableERC721, erc721ForTesting, mintSender, recipient } = await loadFixture(deployFixture);
-            const extensionData = await computeExtensionData(recipient.address, 0x01, {});
-            const tx1 = await endorsableERC721.connect(mintSender).mint(recipient.address, 1, extensionData);
+            const { endorsableERC721, erc721ForTesting, mintSender, recipient, testWallet } = await loadFixture(deployFixture);
+            const endorsement = await computeEndorsement(
+                endorsableERC721,
+                "function mint(address _to,uint256 _tokenId)",
+                ["address", "uint256"],
+                [recipient.address, ethers.utils.arrayify(0x01)],
+                testWallet, { }
+            );
+            const tx1 = await endorsableERC721.connect(mintSender).mint(recipient.address, 1, endorsement);
             const tx1Receipt = await tx1.wait();
             gasBenchmarkReports.push({
                 title: "Mint 1 token",
