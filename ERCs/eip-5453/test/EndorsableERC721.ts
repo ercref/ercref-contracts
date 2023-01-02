@@ -1,12 +1,15 @@
 import { loadFixture, mine } from "@nomicfoundation/hardhat-network-helpers";
 import { expect } from "chai";
+import { Wallet } from "ethers";
 import { ethers } from "hardhat";
+import { computeEndorsement } from "../utils/utils";
 
 describe("EndorsibleERC721", function () {
     async function deployFixture() {
         // Contracts are deployed using the first signer/account by default
         const [owner, mintSender, recipient] = await ethers.getSigners();
         const testSigner = new ethers.utils.SigningKey("0x0000000000000000000000000000000000000000000000000000000000000001");
+        const testWallet:Wallet = new ethers.Wallet("0x0000000000000000000000000000000000000000000000000000000000000001");
         const EndorsableERC721 = await ethers.getContractFactory("EndorsableERC721");
         const endorsableERC721 = await EndorsableERC721.deploy();
         await endorsableERC721.deployed();
@@ -19,7 +22,7 @@ describe("EndorsibleERC721", function () {
         const erc721ForTesting = await ERC721ForTesting.deploy();
         await endorsableERC721.deployed();
 
-        return { endorsableERC721, erc721ForTesting, owner, mintSender, recipient, testSigner, testSignerAddress };
+        return { endorsableERC721, erc721ForTesting, owner, mintSender, recipient, testSigner, testSignerAddress, testWallet };
     }
 
     async function computeExtensionData(
@@ -39,14 +42,14 @@ describe("EndorsibleERC721", function () {
         );
         currentNonce = currentNonce || await (await endorsableERC721.eip5453Nonce(endorsableERC721.address)).toNumber();
         const latestBlock = await ethers.provider.getBlock("latest");
-        const finalDigest = await endorsableERC721.computeValidityDigest(
-            functionParamStructHash,
-            latestBlock.number,
-            latestBlock.number +
-            numOfBlocksBeforeDeadline,
-            currentNonce);
         validSince = validSince || latestBlock.number;
         validBy = validBy || latestBlock.number + numOfBlocksBeforeDeadline;
+        const finalDigest = await endorsableERC721.computeValidityDigest(
+            functionParamStructHash,
+            validSince,
+            validBy,
+            currentNonce);
+
         const signature = testSigner.signDigest(finalDigest);
         const sigPacked = ethers.utils.joinSignature(signature);
         const generalExtensionDataStruct = await endorsableERC721.computeExtensionDataTypeA(
@@ -109,25 +112,27 @@ describe("EndorsibleERC721", function () {
             expect(await endorsableERC721.balanceOf(targetRecipient.address)).to.equal(0);
         });
 
-        it("Should reject if signer have a endorsement not valid yet", async function () {
+        it("Should reject if signer have a endorsement with time not valid yet", async function () {
             const targetTokenId = 0x01;
             const targetRecipient = await ethers.Wallet.createRandom();
-            const { endorsableERC721, mintSender } = await loadFixture(deployFixture);
+            const { endorsableERC721, mintSender, testWallet } = await loadFixture(deployFixture);
             expect(await endorsableERC721.balanceOf(targetRecipient.address)).to.equal(0);
 
             // blocknum is strictly less than validSince.
-            await mine(10);
             const latestBlock = await ethers.provider.getBlock("latest");
 
             // blocknum is strictly less than validSince.
-            const validSince = latestBlock.number - 1;
-            const extensionData = await computeExtensionData(targetRecipient.address, targetTokenId, { validSince });
+            const validSince = latestBlock.number + 2;
+            const extensionData = await computeExtensionData(targetRecipient.address, targetTokenId, {
+                validSince,
+                validBy: validSince + 10,
+            });
             await expect(endorsableERC721.connect(mintSender).mint(targetRecipient.address, targetTokenId, extensionData))
                 .to.be.rejectedWith("Not valid yet");
             expect(await endorsableERC721.balanceOf(targetRecipient.address)).to.equal(0);
         });
 
-        it("Should reject if signer have a endorsement expired", async function () {
+        it("Should reject if signer have a endorsement with time expired", async function () {
             const targetTokenId = 0x01;
             const targetRecipient = await ethers.Wallet.createRandom();
             const { endorsableERC721, mintSender } = await loadFixture(deployFixture);
@@ -136,6 +141,7 @@ describe("EndorsibleERC721", function () {
             const latestBlock = await ethers.provider.getBlock("latest");
             const numOfBlocksBeforeDeadline = 10;
             const extensionData = await computeExtensionData(targetRecipient.address, targetTokenId, { numOfBlocksBeforeDeadline });
+
             await mine(numOfBlocksBeforeDeadline + 1);
             await expect(endorsableERC721.connect(mintSender).mint(targetRecipient.address, targetTokenId, extensionData))
                 .to.be.rejectedWith("Expired");

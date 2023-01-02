@@ -5,8 +5,9 @@ pragma solidity ^0.8.9;
 
 import "@openzeppelin/contracts/utils/cryptography/SignatureChecker.sol";
 import "@openzeppelin/contracts/utils/cryptography/EIP712.sol";
-
 import "./IERC5453.sol";
+// add hardhat log
+import "hardhat/console.sol";
 
 abstract contract AERC5453Endorsible is EIP712,
     IERC5453EndorsementCore, IERC5453EndorsementDigest, IERC5453EndorsementDataTypeA, IERC5453EndorsementDataTypeB {
@@ -21,10 +22,10 @@ abstract contract AERC5453Endorsible is EIP712,
         string memory _erc721Version
     ) EIP712(_name, _erc721Version) {}
 
-    function _validate(
+    function _validateSignatureFromEndorsement(
         bytes32 msgDigest,
         SingleEndorsementData memory endersement
-    ) internal virtual {
+    ) internal view virtual {
         require(
             endersement.sig.length == 65,
             "AERC5453Endorsible: wrong signature length"
@@ -42,22 +43,7 @@ abstract contract AERC5453Endorsible is EIP712,
     function _extractEndorsersFromFinalDigest(
         bytes32 digest,
         GeneralExtensionDataStruct memory data
-    ) internal virtual returns (address[] memory endorsers) {
-        require(
-            data.erc5453MagicWord == MAGIC_WORD,
-            "AERC5453Endorsible: MagicWord not matched"
-        );
-        require(
-            data.validSince <= block.number,
-            "AERC5453Endorsible: Not valid yet"
-        ); // TODO consider per-Endorser validSince
-        require(data.validBy >= block.number, "AERC5453Endorsible: Expired"); // TODO consider per-Endorser validBy
-        require(
-            currentNonce == data.nonce,
-            "AERC5453Endorsible: Nonce not matched"
-        ); // TODO consider per-Endorser nonce or range of nonce
-        currentNonce += 1;
-
+    ) internal view virtual returns (address[] memory endorsers) {
         if (data.erc5453Type == ERC5453_TYPE_A) {
             SingleEndorsementData memory endersement = abi.decode(
                 data.endorsementPayload,
@@ -65,7 +51,7 @@ abstract contract AERC5453Endorsible is EIP712,
             );
             endorsers = new address[](1);
             endorsers[0] = endersement.endorserAddress;
-            _validate(digest, endersement);
+            _validateSignatureFromEndorsement(digest, endersement);
         } else if (data.erc5453Type == ERC5453_TYPE_B) {
             SingleEndorsementData[] memory endorsements = abi.decode(
                 data.endorsementPayload,
@@ -74,7 +60,7 @@ abstract contract AERC5453Endorsible is EIP712,
             endorsers = new address[](endorsements.length);
             for (uint256 i = 0; i < endorsements.length; ++i) {
                 endorsers[i] = endorsements[i].endorserAddress;
-                _validate(digest, endorsements[i]);
+                _validateSignatureFromEndorsement(digest, endorsements[i]);
             }
             return endorsers;
         }
@@ -98,21 +84,50 @@ abstract contract AERC5453Endorsible is EIP712,
         return true;
     }
 
-    function _isEndorsed(
+    // TODO consider per-Endorser validSince, validBy, nonce
+    function _checkTimeValidity(GeneralExtensionDataStruct memory _data) internal view {
+        require(_data.erc5453MagicWord == MAGIC_WORD, "AERC5453Endorsible: MagicWord not matched");
+        require(_data.validSince <= block.number, "AERC5453Endorsible: Not valid yet");
+        require(_data.validBy >= block.number, "AERC5453Endorsible: Expired");
+    }
+
+    function _extractEndorsers(
+        bytes32 _functionParamStructHash,
+        bytes calldata _extraData
+    ) internal view returns(
+        address[] memory _endorsers,
+        bytes32 _finalDigest,
+        GeneralExtensionDataStruct memory _structureData) {
+        _structureData = _decodeExtensionData(
+            _extraData
+        );
+        _finalDigest = _computeValidityDigest(
+            _functionParamStructHash,
+            _structureData.validSince,
+            _structureData.validBy,
+            _structureData.nonce
+        );
+
+        _endorsers = _extractEndorsersFromFinalDigest(_finalDigest, _structureData);
+
+        return (_endorsers, _finalDigest, _structureData);
+    }
+
+    function _checkEndorsementAndUpdateNonce(
         bytes32 _functionParamStructHash,
         bytes calldata _extraData
     ) internal returns (bool) {
-        GeneralExtensionDataStruct memory _data = _decodeExtensionData(
-            _extraData
-        );
-        bytes32 finalDigest = _computeValidityDigest(
-            _functionParamStructHash,
-            _data.validSince,
-            _data.validBy,
-            _data.nonce
-        );
+        (
+            address[] memory endorsers,
+            bytes32 finalDigest,
+            GeneralExtensionDataStruct memory structureData
+        ) = _extractEndorsers(_functionParamStructHash, _extraData);
+        _checkTimeValidity(structureData);
 
-        address[] memory endorsers = _extractEndorsersFromFinalDigest(finalDigest, _data);
+        // TODO: avoid replay attack
+        require(currentNonce == structureData.nonce, "AERC5453Endorsible: Nonce not matched");
+        currentNonce += 1;
+
         require(
             endorsers.length >= threshold,
             "AERC5453Endorsable: not enough endorsers"
@@ -135,7 +150,7 @@ abstract contract AERC5453Endorsible is EIP712,
         bytes32 _functionParamStructHash,
         bytes calldata _extensionData
     ) {
-        require(_isEndorsed(_functionParamStructHash, _extensionData));
+        require(_checkEndorsementAndUpdateNonce(_functionParamStructHash, _extensionData));
         _;
     }
 
