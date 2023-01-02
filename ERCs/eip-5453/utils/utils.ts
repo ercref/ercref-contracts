@@ -2,12 +2,18 @@ import { Contract, Wallet } from "ethers";
 import { BytesLike } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 
+export enum ERC5453EndorsementType {
+    A = "A",
+    B = "B",
+};
+
 export const computeEndorsement = async (
     erc5453: Contract,
     functionString:string,
-    encodeArray: string[], // ["address", "uint256"]
+    encodeArray: string[],
     parameters:BytesLike[],
-    testWallet: Wallet,
+    endorsers: Wallet[],
+    type: ERC5453EndorsementType,
     {
         numOfBlocksBeforeDeadline = 20,
         validSince = 0,
@@ -29,14 +35,31 @@ export const computeEndorsement = async (
         validSince,
         validBy,
         currentNonce);
+    if (type == ERC5453EndorsementType.A) {
+        const endorser = endorsers[0];
+        const signature = endorser._signingKey().signDigest(finalDigest);
+        const sigPacked = ethers.utils.joinSignature(signature);
+        return await erc5453.computeExtensionDataTypeA(
+            currentNonce,
+            validSince,
+            validBy,
+            endorser.address,
+            sigPacked);
+    } else if (type == ERC5453EndorsementType.B) {
+        const sigPackeds = [];
 
-    const signature = testWallet._signingKey().signDigest(finalDigest);
-    const sigPacked = ethers.utils.joinSignature(signature);
-    const generalExtensionDataStruct = await erc5453.computeExtensionDataTypeA(
-        currentNonce,
-        validSince,
-        validBy,
-        testWallet.address,
-        sigPacked);
-    return generalExtensionDataStruct;
+        for (let i = 0; i < endorsers.length; i++) {
+            const signature = endorsers[i]._signingKey().signDigest(finalDigest);
+            const sigPacked = ethers.utils.joinSignature(signature);
+            sigPackeds.push(sigPacked);
+        }
+
+        return await erc5453.computeExtensionDataTypeB(
+            currentNonce,
+            validSince,
+            validBy,
+            endorsers.map(e=>e.address),
+            sigPackeds);
+    }
+    throw new Error("Invalid type");
 };

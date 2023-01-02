@@ -26,6 +26,7 @@ abstract contract AERC5453Endorsible is EIP712,
         bytes32 msgDigest,
         SingleEndorsementData memory endersement
     ) internal view virtual {
+
         require(
             endersement.sig.length == 65,
             "AERC5453Endorsible: wrong signature length"

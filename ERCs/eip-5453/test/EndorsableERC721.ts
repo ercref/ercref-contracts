@@ -2,7 +2,7 @@ import { loadFixture, mine } from "@nomicfoundation/hardhat-network-helpers";
 import { expect } from "chai";
 import { Wallet } from "ethers";
 import { ethers } from "hardhat";
-import { computeEndorsement } from "../utils/utils";
+import { computeEndorsement, ERC5453EndorsementType } from "../utils/utils";
 
 describe("EndorsibleERC721", function () {
     async function deployFixture() {
@@ -41,7 +41,7 @@ describe("EndorsibleERC721", function () {
                 "function mint(address _to,uint256 _tokenId)",
                 ["address", "uint256"],
                 [recipient.address, ethers.utils.arrayify(0x01)],
-                testWallet, { }
+                [testWallet], ERC5453EndorsementType.A, { }
             );
             await endorsableERC721.connect(mintSender).mint(recipient.address, targetTokenId, endorsement);
             expect(await endorsableERC721.balanceOf(recipient.address)).to.equal(targetTokenId);
@@ -59,7 +59,7 @@ describe("EndorsibleERC721", function () {
                         "function mint(address _to,uint256 _tokenId)",
                         ["address", "uint256"],
                         [randomRecipient.address, ethers.utils.arrayify(i * 5 + j)],
-                        testWallet, { }
+                        [testWallet], ERC5453EndorsementType.A, { }
                     );
                     await endorsableERC721.connect(signers[j]).mint(randomRecipient.address, i * 5 + j, endorsement);
                     expect(await endorsableERC721.balanceOf(randomRecipient.address)).to.equal(1);
@@ -81,7 +81,7 @@ describe("EndorsibleERC721", function () {
                 "function mint(address _to,uint256 _tokenId)",
                 ["address", "uint256"],
                 [targetRecipient.address, ethers.utils.arrayify(wroteTokenId)],
-                testWallet, { }
+                [testWallet], ERC5453EndorsementType.A, { }
             );
             await expect(endorsableERC721.connect(mintSender).mint(targetRecipient.address, targetTokenId, endorsement1))
                 .to.be.rejectedWith("AERC5453Endorsible: invalid signature");
@@ -92,7 +92,7 @@ describe("EndorsibleERC721", function () {
                 "function mint(address _to,uint256 _tokenId)",
                 ["address", "uint256"],
                 [wrongRecipient.address, ethers.utils.arrayify(targetTokenId)],
-                testWallet, { }
+                [testWallet], ERC5453EndorsementType.A, { }
             );
             await expect(endorsableERC721.connect(mintSender).mint(targetRecipient.address, targetTokenId, endorsement2)).to.be.rejectedWith("AERC5453Endorsible: invalid signature");
 
@@ -115,7 +115,7 @@ describe("EndorsibleERC721", function () {
                 "function mint(address _to,uint256 _tokenId)",
                 ["address", "uint256"],
                 [targetRecipient.address, ethers.utils.arrayify(targetTokenId)],
-                testWallet, {
+                [testWallet], ERC5453EndorsementType.A, {
                     validSince,
                     validBy: validSince + 10,
                 }
@@ -138,7 +138,7 @@ describe("EndorsibleERC721", function () {
                 "function mint(address _to,uint256 _tokenId)",
                 ["address", "uint256"],
                 [targetRecipient.address, ethers.utils.arrayify(targetTokenId)],
-                testWallet, { numOfBlocksBeforeDeadline }
+               [testWallet], ERC5453EndorsementType.A, { numOfBlocksBeforeDeadline }
             );
 
             await mine(numOfBlocksBeforeDeadline + 1);
@@ -160,7 +160,7 @@ describe("EndorsibleERC721", function () {
                 "function mint(address _to,uint256 _tokenId)",
                 ["address", "uint256"],
                 [targetRecipient.address, ethers.utils.arrayify(targetTokenId)],
-                testWallet, { currentNonce: currentNonce + 1 }
+                [testWallet], ERC5453EndorsementType.A, { currentNonce: currentNonce + 1 }
             );
 
             await expect(endorsableERC721.connect(mintSender).mint(targetRecipient.address, targetTokenId, endorsement))
@@ -178,7 +178,7 @@ describe("EndorsibleERC721", function () {
                 "function mint(address _to,uint256 _tokenId)",
                 ["address", "uint256"],
                 [recipient.address, ethers.utils.arrayify(0x01)],
-                testWallet, { }
+                [testWallet], ERC5453EndorsementType.A, { }
             );
             const tx1 = await endorsableERC721.connect(mintSender).mint(recipient.address, 1, endorsement);
             const tx1Receipt = await tx1.wait();
