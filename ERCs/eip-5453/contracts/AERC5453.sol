@@ -39,7 +39,7 @@ abstract contract AERC5453Endorsible is EIP712,
         );
     }
 
-    function _extractEndorsers(
+    function _extractEndorsersFromFinalDigest(
         bytes32 digest,
         GeneralExtensionDataStruct memory data
     ) internal virtual returns (address[] memory endorsers) {
@@ -112,7 +112,7 @@ abstract contract AERC5453Endorsible is EIP712,
             _data.nonce
         );
 
-        address[] memory endorsers = _extractEndorsers(finalDigest, _data);
+        address[] memory endorsers = _extractEndorsersFromFinalDigest(finalDigest, _data);
         require(
             endorsers.length >= threshold,
             "AERC5453Endorsable: not enough endorsers"
