@@ -8,7 +8,7 @@ interface IERC5269 {
       address indexed caller, // when emitted with `address(0x0)` means all callers.
       uint256 indexed majorEIPIdentifier,
       bytes32 indexed minorEIPIdentifier, // 0 means the entire EIP
-      bytes32 indexed eipStatus,
+      bytes32 eipStatus,
       bytes extraData
   );
 
@@ -17,7 +17,7 @@ interface IERC5269 {
   /// @param majorEIPIdentifier, a `uint256` value and SHOULD BE the EIP number being queried. Unless superseded by future EIP, such EIP number SHOULD BE less or equal to (0, 2^32-1]. For a function call to `supportEIP`, any value outside of this range is deemed unspecified and open to implementation's choice or for future EIPs to specify.
   /// @param minorEIPIdentifier, a `bytes32` value reserved for authors of individual EIP to specify. For example the author of [EIP-721](/EIPS/eip-721) MAY specify `keccak256("ERC721Metadata")` or `keccak256("ERC721Metadata.tokenURI")` as `minorEIPIdentifier` to be quired for support. Author could also use this minorEIPIdentifier to specify different versions, such as EIP-712 has its V1-V4 with different behavior.
   /// @param extraData, a `bytes` for [EIP-5750](/EIPS/eip-5750) for future extensions.
-  /// @returns eipStatus a bytes32 indicating the status of EIP the contract supports.
+  /// @return eipStatus a bytes32 indicating the status of EIP the contract supports.
   ///                    - For FINAL EIPs, it MUST return `keccak256("FINAL")`.
   ///                    - For non-FINAL EIPs, it SHOULD return `keccak256("DRAFT")`.
   ///                      During EIP procedure, EIP authors are allowed to specify their own
