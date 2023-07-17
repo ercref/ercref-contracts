@@ -23,7 +23,11 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
  * 
  *         TODO(xinbenlv): we haven't check for math overflow. DO NOT USE IN PRODUCTION.
  */
-abstract contract AJointStockCompany is Initializable, ERC20Upgradeable, IERC1363ReceiverUpgradeable {
+abstract contract AJointStockCompany is Initializable, 
+    ERC20Upgradeable, IERC1363ReceiverUpgradeable {
+
+    event SharesPurchased(address indexed buyer, uint256 amount);
+    event SupportedTokenAdded(IERC1363Upgradeable indexed token);
     // Address = 0 are reserved for the native token of the blockchain
     // For mainnnet it's ETH
     // For goerli it's goerliETH
@@ -77,7 +81,22 @@ abstract contract AJointStockCompany is Initializable, ERC20Upgradeable, IERC136
         return _supportTokens.length;
     }
 
+    function withdrawableAmount(address _to, IERC1363Upgradeable _token) external view returns (uint256) {
+        return _withdrawableAmount(_to, _token);
+    }
+
     /* --- Internal or Private Methods --- */
+
+    function _withdrawableAmount(address _to, IERC1363Upgradeable _token) internal view returns (uint256) {
+        uint256 sharesOfTo = balanceOf(_to);
+        _validateTotalRetainedToken(_token);
+        return _virtualTotalRetainedEarnings[_token] / sharesOfTo - _virtualWithdrawnEarningsByOwner[_to][_token];
+    }
+
+    function _addSupportedToken(IERC1363Upgradeable _token) internal {
+        _supportTokens.push(_token);
+        emit SupportedTokenAdded(_token);
+    }
 
     function _balanceOf(address _to) internal view returns (uint256) {
         // This was due to the fact we use ERC20Upgradeable from OZ
@@ -87,11 +106,10 @@ abstract contract AJointStockCompany is Initializable, ERC20Upgradeable, IERC136
 
     function _withdrawEarnings(address payable _to, IERC1363Upgradeable _token, uint256 _amount) internal {
         require(_amount > 0, "StockToken: amount must be greater than 0");
-        uint256 sharesOfTo = balanceOf(_to);
         _validateTotalRetainedToken(_token);
 
-        uint256 _withdrawableAmount = _virtualTotalRetainedEarnings[_token] / sharesOfTo - _virtualWithdrawnEarningsByOwner[_to][_token];
-        require(_withdrawableAmount >= _amount, "StockToken: not enough retained amount");
+        uint256 localWithdrawableAmount = _withdrawableAmount(_to, _token);
+        require(localWithdrawableAmount >= _amount, "StockToken: not enough retained amount");
         
         _virtualWithdrawnEarningsByOwner[_to][_token] += _amount;
         if (address(_token) == address(0)) _to.transfer(_amount);

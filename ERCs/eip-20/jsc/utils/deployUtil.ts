@@ -26,7 +26,11 @@ export async function deployUpgradableByName(
 
     const proxy = await upgrades.deployProxy(
         logicFactory,
-        parameters
+        parameters,
+
+        // TODO: remove next line of "unsafeAllow" when the latest openzeppelin upgrades is included in the next release
+        // https://github.com/OpenZeppelin/openzeppelin-contracts-upgradeable/commit/15bc82434a56adc1113e70f7b2ad7f2848a641ee#diff-68a1c31fc85cb82c7387ab7dc8c5ae5c1885baeb271cf6e68f67c753d909e0c3L6
+        { unsafeAllow: ['delegatecall'] }
     );
 
     // get implementation for proxy
