@@ -45,16 +45,18 @@ describe("Contract", function () {
         owner
       } = await loadFixture(deployFixture);
       const SHARES_TO_BUY = 10;
-      const price = ethers.BigNumber.from(await contract.pricePerShare());
-      expect(price).to.equal(ethers.utils.parseEther("0.1"));
+      const pricePerShareFraction = ethers.BigNumber.from(await contract.pricePerShareFraction());
+      console.log(`pricePerShareFraction: ${pricePerShareFraction}`);
+      const numOfFractionPerShare = ethers.BigNumber.from(10).pow(await contract.decimals());
+      console.log(`numOfFractionPerShare: ${numOfFractionPerShare}`);
 
-      const unitPerShare = ethers.BigNumber.from(10).pow(await contract.decimals());
-      const sharesUnitAmount = unitPerShare.mul(SHARES_TO_BUY);
-      const payment = price.mul(sharesUnitAmount).mul(unitPerShare); // 10 shares
-      const tx = await contract.purchaseShares(shares, {value: payment});
-      expect(await contract.balanceOf(owner.address)).to.equal(shares);
-      expect(await contract.getShares(owner.address)).to.equal(shares);
-      expect(await contract.totalSupply()).to.equal(shares);
+      expect(pricePerShareFraction.mul(numOfFractionPerShare)).to.equal(ethers.utils.parseEther("0.1"));
+      const purchasedAmountInShareFractions = numOfFractionPerShare.mul(SHARES_TO_BUY);
+      const payment = pricePerShareFraction.mul(purchasedAmountInShareFractions); // 10 shares
+      const tx = await contract.purchaseShares(purchasedAmountInShareFractions, {value: payment});
+      expect(await contract.balanceOf(owner.address)).to.equal(purchasedAmountInShareFractions);
+      expect(await contract.getShares(owner.address)).to.equal(purchasedAmountInShareFractions);
+      expect(await contract.totalSupply()).to.equal(purchasedAmountInShareFractions);
       
       const rc = await tx.wait();
       const transferEvents = rc.events?.filter((x:any) => x.event == "Transfer");

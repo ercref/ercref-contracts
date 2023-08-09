@@ -14,6 +14,7 @@ contract TestnetClub is Initializable, AJointStockCompany {
     function initialize() initializer external {
         __AJointStockCompany_init('TestnetClub Shares', 'TCS');
         _addSupportedToken(IERC1363Upgradeable(address(0)));
+        _mint(msg.sender, 100 * 10**decimals()); // issue 1000 shares to the owner init
     }
 
     function purchaseShares(uint256 amountInShareFraction) external payable {
@@ -33,7 +34,8 @@ contract TestnetClub is Initializable, AJointStockCompany {
         return _pricePerShareFraction();
     }
 
+    // XXX need to change to TrillionFractionalShare
     function _pricePerShareFraction() internal view returns (uint256) {
-        return 0.1 ether + totalSupply() / 1000;
+        return (10**17) / (10**this.decimals());
     }
 }

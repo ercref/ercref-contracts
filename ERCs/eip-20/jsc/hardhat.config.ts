@@ -23,18 +23,7 @@ const config: HardhatUserConfig = {
   etherscan: {
     apiKey: {
       goerli: process.env.ETHERSCAN_API_KEY as string,
-      gnosis: process.env.GNOSIS_API_KEY as string,
-    },
-    customChains: [
-      {
-        network: "gnosis",
-        chainId: 100,
-        urls: {
-          apiURL: "https://api.gnosisscan.io/api",
-          browserURL: "https://gnosisscan.io"
-        }
-      }
-    ]
+    }
   },
 };
 
